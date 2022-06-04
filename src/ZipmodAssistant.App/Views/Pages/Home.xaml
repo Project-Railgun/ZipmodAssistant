@@ -1,0 +1,86 @@
+﻿<Page x:Class="ZipmodAssistant.App.Views.Pages.Home"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:controls="clr-namespace:ZipmodAssistant.App.Controls"
+      xmlns:viewModels="clr-namespace:ZipmodAssistant.App.ViewModels"
+      mc:Ignorable="d"
+      d:DesignHeight="450" d:DesignWidth="800"
+      Style="{StaticResource UiPageScrollable}"
+      d:DataContext="{d:DesignInstance viewModels:HomeViewModel}"
+      DataContext="{Binding ViewModel}"
+      Title="Home">
+  <Grid>
+    <Border Grid.Row="0" Margin="0,0,0,0" CornerRadius="8,0,0,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Margin="64,64,64,16" HorizontalAlignment="Left" Background="Transparent" Grid.Column="0">
+          <Label FontWeight="DemiBold">Input Folder</Label>
+          <controls:FileInput Margin="0,8,0,16" Value="{Binding DirectoryConfiguration.InputDirectory}" />
+          <Label FontWeight="DemiBold">Output Folder</Label>
+          <controls:FileInput Margin="0,8,0,16" Value="{Binding DirectoryConfiguration.OutputDirectory}" />
+          <Label FontWeight="DemiBold">Cache Folder</Label>
+          <controls:FileInput Margin="0,8,0,16" Value="{Binding DirectoryConfiguration.CacheDirectory}" />
+          <wpfui:Button Margin="0,32,0,16" Click="StartClicked">Start</wpfui:Button>
+        </StackPanel>
+        <StackPanel Margin="0,64,0,0" HorizontalAlignment="Left" Background="Transparent" Grid.Column="1">
+          <Grid Margin="0,0,0,0">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="32" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="32" />
+              <RowDefinition Height="48" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Label Grid.Row="0" FontWeight="DemiBold">Options</Label>
+            <StackPanel Grid.Column="0" Grid.Row="1" Margin="0,0,32,0">
+              <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding BuildConfiguration.RandomizeCab}">Randomize Cab</wpfui:ToggleSwitch>
+              <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding BuildConfiguration.SkipRenaming}">Skip Renaming</wpfui:ToggleSwitch>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Grid.Row="1">
+              <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding BuildConfiguration.SkipCompression}">Skip Compression</wpfui:ToggleSwitch>
+              <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding BuildConfiguration.SkipJunkCleanup}">Skip Junk Cleanup</wpfui:ToggleSwitch>
+            </StackPanel>
+
+            <StackPanel Grid.Row="3" Grid.ColumnSpan="2">
+              <Label FontWeight="DemiBold">Game tag</Label>
+              <Label FontWeight="ExtraLight">Leave all unchecked to not change</Label>
+            </StackPanel>
+            <StackPanel Grid.Row="4" Grid.Column="0">
+              <wpfui:ToggleSwitch Margin="0,16,0,0">KK</wpfui:ToggleSwitch>
+              <wpfui:ToggleSwitch Margin="0,16,0,0">KKS</wpfui:ToggleSwitch>
+              <wpfui:ToggleSwitch Margin="0,16,0,0">EC</wpfui:ToggleSwitch>
+            </StackPanel>
+            <StackPanel Grid.Row="4" Grid.Column="1">
+              <wpfui:ToggleSwitch Margin="0,16,0,0">AIS</wpfui:ToggleSwitch>
+              <wpfui:ToggleSwitch Margin="0,16,0,0">HS2</wpfui:ToggleSwitch>
+              <wpfui:Hyperlink Margin="0,16,0,0">Remove all</wpfui:Hyperlink>
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+        <wpfui:DynamicScrollViewer Grid.ColumnSpan="2" Grid.Row="1">
+          <wpfui:DynamicScrollViewer.Background>
+            <SolidColorBrush Color="{StaticResource ApplicationBackgroundColor}" />
+          </wpfui:DynamicScrollViewer.Background>
+          <ItemsControl>
+
+          </ItemsControl>
+        </wpfui:DynamicScrollViewer>
+      </Grid>
+    </Border>
+  </Grid>
+</Page>

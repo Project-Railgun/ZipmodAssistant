@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ZipmodAssistant (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "ZipmodAssistant (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

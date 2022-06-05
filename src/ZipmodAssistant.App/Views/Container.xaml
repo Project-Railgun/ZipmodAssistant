@@ -13,9 +13,10 @@
         WindowStyle="None"
         d:DesignWidth="800"
         d:DesignHeight="450"
-        Loaded="WindowLoaded">
+        Loaded="WindowLoaded"
+        ResizeMode="NoResize">
 
-  <Grid x:Name="NavigationGrid">
+  <Grid x:Name="ContentGrid">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />
       <RowDefinition Height="*" />
@@ -59,8 +60,8 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
           </Grid.RowDefinitions>
-          <Frame Grid.Column="1" Name="RootFrame" />
           <wpfui:Breadcrumb Grid.Row="0" Margin="18" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="24" Navigation="{Binding ElementName=Navigation}" />
+          <Frame Name="RootFrame" Grid.Row="1" Margin="64,0,0,16" />
         </Grid>
       </Border>
     </Grid>

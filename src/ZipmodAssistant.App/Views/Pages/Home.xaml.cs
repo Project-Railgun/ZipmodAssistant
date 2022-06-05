@@ -13,6 +13,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using ZipmodAssistant.Api.Enums;
+using ZipmodAssistant.Api.Interfaces.Services;
+using ZipmodAssistant.App.Extensions;
 using ZipmodAssistant.App.ViewModels;
 
 namespace ZipmodAssistant.App.Views.Pages
@@ -22,23 +25,42 @@ namespace ZipmodAssistant.App.Views.Pages
   /// </summary>
   public partial class Home : Page
   {
-    public HomeViewModel ViewModel { get; set; } = new();
+    private ILoggerService _logger;
+
+    private HomeViewModel _viewModel => (HomeViewModel)DataContext;
 
     public Home()
     {
       InitializeComponent();
-      DataContext = ViewModel;
+      _logger = this.GetService<ILoggerService>();
+      _logger.MessageLogged += (sender, message) =>
+      {
+        _viewModel.LogMessages.Add(message);
+        LogMessageScroll.ScrollToBottom();
+      };
     }
 
-    private void StartClicked(object sender, RoutedEventArgs e)
+    private async void StartClicked(object sender, RoutedEventArgs e)
     {
+      _viewModel.IsBuilding = true;
+      _viewModel.BuildProgress = 0;
       try
       {
-        ViewModel.ValidateDirectoryConfiguration();
+        _viewModel.ValidateDirectoryConfiguration();
+        do
+        {
+          _viewModel.BuildProgress += 5;
+          await Task.Delay(200);
+        }
+        while (_viewModel.BuildProgress < 100);
       }
       catch (DirectoryNotFoundException ex)
       {
-        Console.WriteLine(ex);
+        _logger.Log(ex);
+      }
+      finally
+      {
+        _viewModel.IsBuilding = false;
       }
     }
   }

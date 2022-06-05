@@ -5,6 +5,8 @@ using System.Windows;
 using ZipmodAssistant.Api.Data;
 using ZipmodAssistant.Api.Interfaces.Services;
 using ZipmodAssistant.Api.Services;
+using ZipmodAssistant.App.Extensions;
+using ZipmodAssistant.App.ViewModels;
 using ZipmodAssistant.App.Views;
 
 namespace ZipmodAssistant.App
@@ -21,6 +23,13 @@ namespace ZipmodAssistant.App
       var services = new ServiceCollection();
       ConfigureServices(services);
       _serviceProvider = services.BuildServiceProvider();
+      AppDomain.CurrentDomain.UnhandledException += UnhandledException;
+      DependencyInjectionSource.ServiceProvider = _serviceProvider;
+    }
+
+    private void UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+      throw new NotImplementedException();
     }
 
     void ConfigureServices(IServiceCollection services)
@@ -32,7 +41,10 @@ namespace ZipmodAssistant.App
       });
 
       // configure services
+      services.AddScoped<ILoggerService, LoggerService>();
       services.AddScoped<IManifestService, ManifestService>();
+      // configure view models
+      services.AddScoped<HomeViewModel>();
 
       // configure windows
       services.AddSingleton<Container>();

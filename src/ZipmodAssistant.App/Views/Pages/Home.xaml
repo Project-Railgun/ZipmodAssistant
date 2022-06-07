@@ -28,7 +28,7 @@
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />
       <RowDefinition Height="16" />
-      <RowDefinition Height="272" />
+      <RowDefinition Height="248" />
     </Grid.RowDefinitions>
     <StackPanel HorizontalAlignment="Left" Background="Transparent" Grid.Column="0">
       <Label FontWeight="DemiBold">Input Folder</Label>

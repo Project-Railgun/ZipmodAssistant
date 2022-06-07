@@ -15,7 +15,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
     <Folder Include="Extensions\" />
     <Folder Include="Providers\" />
   </ItemGroup>
@@ -26,6 +25,11 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
     <PackageReference Include="Semver" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ZipmodAssistant.Shared\ZipmodAssistant.Shared.csproj" />
+    <ProjectReference Include="..\ZipmodAssistant.Tarot\ZipmodAssistant.Tarot.csproj" />
   </ItemGroup>
 
 </Project>

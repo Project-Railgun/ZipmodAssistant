@@ -12,6 +12,6 @@ namespace ZipmodAssistant.Api.Interfaces.Services
     Task<bool> ValidateManifestAsync(XmlDocument manifest);
     Task<bool> ValidateManifestAsync(string location);
 
-
+    Task<byte[]> GetManifestHashAsync();
   }
 }

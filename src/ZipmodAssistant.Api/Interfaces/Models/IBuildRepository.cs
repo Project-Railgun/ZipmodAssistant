@@ -6,11 +6,9 @@ using System.Threading.Tasks;
 
 namespace ZipmodAssistant.Api.Interfaces.Models
 {
-  public interface IBuildRepository
+  public interface IBuildRepository : IEnumerable<IRepositoryItem>, IRepositoryItem
   {
-    IEnumerable<string> PngLocations { get; }
-    IEnumerable<string> ZipmodLocations { get; }
-    string? ManifestLocation { get; }
-    IZipmodConfiguration Configuration { get; }
+    IZipmodConfiguration Configuration { get; set; }
+    string RootDirectory { get; set; }
   }
 }

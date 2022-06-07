@@ -3,7 +3,7 @@
   public enum RepositoryItemType
   {
     Image,
-    Zip,
+    Repository,
     Unknown,
   }
 }

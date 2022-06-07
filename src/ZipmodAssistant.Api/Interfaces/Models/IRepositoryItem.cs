@@ -10,8 +10,9 @@ namespace ZipmodAssistant.Api.Interfaces.Models
   public interface IRepositoryItem
   {
     RepositoryItemType ItemType { get; }
+    string FileLocation { get; }
     byte[] Hash { get; }
 
-    Task<bool> ProcessAsync(IBuildRepository repository);
+    Task<bool> ProcessAsync(IBuildConfiguration buildConfiguration, IBuildRepository repository);
   }
 }

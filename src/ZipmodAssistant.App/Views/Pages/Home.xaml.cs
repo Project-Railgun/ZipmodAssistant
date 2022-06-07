@@ -25,9 +25,9 @@ namespace ZipmodAssistant.App.Views.Pages
   /// </summary>
   public partial class Home : Page
   {
-    private ILoggerService _logger;
+    private readonly ILoggerService _logger;
 
-    private HomeViewModel _viewModel => (HomeViewModel)DataContext;
+    private HomeViewModel ViewModel => (HomeViewModel)DataContext;
 
     public Home()
     {
@@ -35,24 +35,24 @@ namespace ZipmodAssistant.App.Views.Pages
       _logger = this.GetService<ILoggerService>();
       _logger.MessageLogged += (sender, message) =>
       {
-        _viewModel.LogMessages.Add(message);
+        ViewModel.LogMessages.Add(message);
         LogMessageScroll.ScrollToBottom();
       };
     }
 
     private async void StartClicked(object sender, RoutedEventArgs e)
     {
-      _viewModel.IsBuilding = true;
-      _viewModel.BuildProgress = 0;
+      ViewModel.IsBuilding = true;
+      ViewModel.BuildProgress = 0;
       try
       {
-        _viewModel.ValidateDirectoryConfiguration();
+        ViewModel.ValidateDirectoryConfiguration();
         do
         {
-          _viewModel.BuildProgress += 5;
+          ViewModel.BuildProgress += 5;
           await Task.Delay(200);
         }
-        while (_viewModel.BuildProgress < 100);
+        while (ViewModel.BuildProgress < 100);
       }
       catch (DirectoryNotFoundException ex)
       {
@@ -60,7 +60,7 @@ namespace ZipmodAssistant.App.Views.Pages
       }
       finally
       {
-        _viewModel.IsBuilding = false;
+        ViewModel.IsBuilding = false;
       }
     }
   }

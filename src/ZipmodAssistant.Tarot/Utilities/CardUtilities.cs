@@ -29,12 +29,15 @@ namespace ZipmodAssistant.Tarot.Utils
         await stream.ReadAsync(chunkData);
         // remove CRC
         stream.Position += 4;
-        // TODO: I'm tired as hell right now so verify this
-        if (chunkData[^1] == _endChunk[^1] && chunkData[^(_endChunk.Length - 1)] == _endChunk[0])
+        int i;
+        for (i = _endChunk.Length - 1; i >= 0; i--)
         {
-          // chances are we're at IEND, verify by checking the rest
-          isReadingChunks = false;
+          if (chunkData[^i] != _endChunk[i])
+          {
+            break;
+          }
         }
+        isReadingChunks = i > 0;
       }
       while (isReadingChunks);
 

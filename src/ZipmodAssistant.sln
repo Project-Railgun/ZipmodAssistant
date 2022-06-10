@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZipmodAssistant.Tarot", "Zi
 		{86DE74BC-4F9D-4958-8991-933D0EAD0C6F} = {86DE74BC-4F9D-4958-8991-933D0EAD0C6F}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZipmodAssistant.Shared", "ZipmodAssistant.Shared\ZipmodAssistant.Shared.csproj", "{86DE74BC-4F9D-4958-8991-933D0EAD0C6F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZipmodAssistant.Shared", "ZipmodAssistant.Shared\ZipmodAssistant.Shared.csproj", "{86DE74BC-4F9D-4958-8991-933D0EAD0C6F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

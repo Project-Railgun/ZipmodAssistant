@@ -1,14 +1,33 @@
-﻿using ZipmodAssistant.Tarot.Enum;
+﻿using MessagePack;
+using ZipmodAssistant.Tarot.Enum;
 using ZipmodAssistant.Tarot.Interfaces.Models;
 
 namespace ZipmodAssistant.Tarot.Models
 {
   public abstract class BaseCard : ICard
   {
-    public string Name { get; protected set; }
+    [MessagePackObject]
+    public class Header
+    {
+      [Key("lstInfo")]
+      public List<Info> Infos { get; set; } = new();
+
+      public Info? SearchInfo(string name) => Infos.Find(info => info.Name == name);
+
+      [MessagePackObject]
+      public record Info(
+        [property: Key("name")] string Name,
+        [property: Key("version")] string Version,
+        [property: Key("pos")] long Position,
+        [property: Key("size")] long Size);
+    }
+
+    protected const string PARAMETER_INFO_BLOCKNAME = "Parameter";
+
+    public virtual string Name { get; protected set; }
     public FileInfo FileLocation { get; protected set; }
-    public CharacterSex Sex { get; protected set; } = CharacterSex.Unknown;
-    public string Personality { get; protected set; } = string.Empty;
+    public virtual CharacterSex Sex { get; protected set; } = CharacterSex.Unknown;
+    public virtual string Personality { get; protected set; } = string.Empty;
 
     protected BaseCard(FileInfo fileLocation)
     {
@@ -16,6 +35,6 @@ namespace ZipmodAssistant.Tarot.Models
       Name = fileLocation.Name[..(fileLocation.Name.LastIndexOf('.') - 1)];
     }
 
-    public abstract Task LoadAsync();
+    public abstract Task LoadAsync(BinaryReader reader);
   }
 }

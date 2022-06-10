@@ -5,18 +5,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ZipmodAssistant.Tarot.Utils
+namespace ZipmodAssistant.Tarot.Utilities
 {
   public static class CardUtilities
   {
     private static readonly byte[] _endChunk = { 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 };
 
-    public static async Task<byte[]> ReadAdditionalBytesAsync(Stream stream)
+    public static async Task<BinaryReader> ReadAdditionalBytesAsync(Stream stream)
     {
       // first iterate through actual chunks
       // get rid of the first 8 bytes in the reader
       stream.Position += 8;
-      var isReadingChunks = true;
+      bool isReadingChunks;
       do
       {
         // TODO: is binaryprimitives faster than just regular bit shifting?
@@ -44,7 +44,7 @@ namespace ZipmodAssistant.Tarot.Utils
       var buffer = new MemoryStream();
       // haven't tested, not sure if it respects the position during copy
       await stream.CopyToAsync(buffer);
-      return buffer.ToArray();
+      return new BinaryReader(buffer);
     }
   }
 }

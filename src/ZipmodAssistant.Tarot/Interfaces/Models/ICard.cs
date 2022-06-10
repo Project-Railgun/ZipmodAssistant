@@ -9,6 +9,6 @@ namespace ZipmodAssistant.Tarot.Interfaces.Models
     CharacterSex Sex { get; }
     string Personality { get; }
 
-    Task LoadAsync();
+    Task LoadAsync(BinaryReader reader);
   }
 }

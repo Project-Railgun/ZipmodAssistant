@@ -32,5 +32,7 @@ namespace ZipmodAssistant.Api.Models
     public bool SkipCompression { get; set; }
 
     public bool SkipCleanup { get; set; }
+
+    public bool SkipKnownMods { get; set; }
   }
 }

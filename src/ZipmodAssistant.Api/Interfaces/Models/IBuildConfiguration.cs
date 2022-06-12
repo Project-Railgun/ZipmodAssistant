@@ -9,5 +9,6 @@
     bool SkipRenaming { get; }
     bool SkipCompression { get; }
     bool SkipCleanup { get; }
+    bool SkipKnownMods { get; }
   }
 }

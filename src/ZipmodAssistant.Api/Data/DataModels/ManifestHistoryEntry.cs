@@ -10,8 +10,8 @@ namespace ZipmodAssistant.Api.Data.DataModels
   public class ManifestHistoryEntry
   {
     [Key]
+    public string Hash { get; set; }
     public string Guid { get; set; }
-    public byte[] Hash { get; set; }
     public bool IsBlackListed { get; set; }
     public string Version { get; set; }
   }

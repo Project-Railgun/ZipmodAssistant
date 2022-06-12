@@ -30,7 +30,7 @@ namespace ZipmodAssistant.Tarot.Models
 
     public override async Task LoadAsync(BinaryReader reader)
     {
-      throw new NotImplementedException();
+      
     }
   }
 }

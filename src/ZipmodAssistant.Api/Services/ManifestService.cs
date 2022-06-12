@@ -36,6 +36,11 @@ namespace ZipmodAssistant.Api.Services
       throw new NotImplementedException();
     }
 
+    public Task<byte[]> GetManifestHashAsync()
+    {
+      throw new NotImplementedException();
+    }
+
     private const string manifestSchema = """
       <?xml version="1.0" encoding="utf-8">
       <xs:schema

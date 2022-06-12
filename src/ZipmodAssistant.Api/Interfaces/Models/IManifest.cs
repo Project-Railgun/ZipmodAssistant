@@ -9,6 +9,6 @@
     string Author { get; set; }
     string Description { get; set; }
     string Website { get; set; }
-    IEnumerable<string> Games { get; set; }
+    string[] Games { get; set; }
   }
 }

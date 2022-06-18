@@ -7,10 +7,12 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using ZipmodAssistant.Api.Data;
+using ZipmodAssistant.Api.Data.DataModels;
 using ZipmodAssistant.Api.Enums;
 using ZipmodAssistant.Api.Exceptions;
 using ZipmodAssistant.Api.Extensions;
 using ZipmodAssistant.Api.Interfaces.Models;
+using ZipmodAssistant.Api.Interfaces.Services;
 
 namespace ZipmodAssistant.Api.Models
 {
@@ -21,8 +23,9 @@ namespace ZipmodAssistant.Api.Models
     public FileInfo FileInfo { get; }
     public RepositoryItemType ItemType => RepositoryItemType.Repository;
     public byte[] Hash => Array.Empty<byte>();
+    public Manifest RepositoryManifest { get; private set; }
 
-    private ZipmodDbContext _dbContext;
+    private readonly ZipmodDbContext _dbContext;
 
     public BuildRepository(string rootDirectory, IZipmodConfiguration zipmodConfiguration, ZipmodDbContext dbContext)
     {
@@ -37,61 +40,65 @@ namespace ZipmodAssistant.Api.Models
       _dbContext = dbContext;
     }
 
-    public async Task<bool> ProcessAsync(IBuildConfiguration buildConfiguration, IBuildRepository repository)
+    // TODO: in the morning, change this to unpack the zipmod and clean up in output folder
+    public async Task<IProcessResult> ProcessAsync(IOutputService output, IBuildRepository repository)
     {
-      // this will only get called if the repository is a zipmod/zip
-      if (FileInfo != null)
+      if (FileInfo == null)
       {
-        var zipmodName = FileInfo.NameWithoutExtension();
-        using var zipArchive = new ZipArchive(FileInfo.OpenRead());
-        var manifestEntry = zipArchive.GetEntry("manifest.xml");
-        if (manifestEntry == null)
+        return new NoChangeProcessResult(this);
+      }
+      using var zipArchive = new ZipArchive(FileInfo.OpenRead());
+      var manifestEntry = zipArchive.GetEntry("manifest.xml");
+      if (manifestEntry == null)
+      {
+        return output.MarkAsMalformed(this, "No manifest.xml found");
+      }
+      using var manifestStream = manifestEntry.Open();
+      RepositoryManifest = await Manifest.ReadFromStreamAsync(manifestStream);
+      var historyEntry = await _dbContext.ManifestHistoryEntries.FindAsync(RepositoryManifest.Hash);
+      if (!TryValidateRepository(output, historyEntry, out var processResult))
+      {
+        return processResult;
+      }
+
+      await _dbContext.ManifestHistoryEntries.AddAsync(new()
+      {
+        Hash = RepositoryManifest.Hash,
+        Guid = RepositoryManifest.Guid,
+        IsBlackListed = false,
+        Version = RepositoryManifest.Version,
+      });
+      zipArchive.ExtractToDirectory(output.ReserveCache(this));
+      return output.MarkAsCompleted(this);
+    }
+
+    bool TryValidateRepository(IOutputService output, ManifestHistoryEntry? historyEntry, out IProcessResult result)
+    {
+      if (historyEntry?.IsBlackListed == true)
+      {
+        result = output.MarkAsBlacklisted(this);
+        return false;
+      }
+      if (string.IsNullOrEmpty(RepositoryManifest.Guid))
+      {
+        result = output.MarkAsMalformed(this, "No GUID found");
+        return false;
+      }
+      if (Version.TryParse(RepositoryManifest.Version, out var newVersion))
+      {
+        if (historyEntry != null && Version.Parse(historyEntry.Version) > newVersion)
         {
+          result = output.MarkAsSkipped(this, $"A newer version is available: {historyEntry.Version}");
           return false;
         }
-        using var manifestStream = manifestEntry.Open();
-        var md5 = await CalculateStreamMd5Async(manifestStream);
-        if (await IsMd5EligibleForSkipAsync(buildConfiguration, md5))
-        {
-          // copy all contents to output directory
-          var outputFolder = Path.Combine(buildConfiguration.OutputDirectory, zipmodName);
-          zipArchive.ExtractToDirectory(outputFolder);
-          return true;
-        }
-        else
-        {
-          var cacheFolder = Path.Combine(buildConfiguration.CacheDirectory, zipmodName);
-          // reset position of input stream
-          manifestStream.Seek(0, SeekOrigin.Begin);
-          var manifest = await Manifest.ReadFromStreamAsync(manifestStream);
-          if (string.IsNullOrEmpty(manifest.Guid))
-          {
-            throw new MalformedManifestException(manifest, nameof(manifest.Guid));
-          }
-          if (string.IsNullOrEmpty(manifest.Name))
-          {
-            manifest.Name = zipmodName;
-          }
-          if (!Version.TryParse(manifest.Version, out var _))
-          {
-            throw new MalformedManifestException(manifest, nameof(manifest.Version));
-          }
-        }
+        result = new SuccessProcessResult(this);
+        return true;
       }
-      return true;
-    }
-
-    private static async Task<string> CalculateStreamMd5Async(Stream stream)
-    {
-      using var md5 = MD5.Create();
-      var streamHash = await md5.ComputeHashAsync(stream);
-      return Convert.ToBase64String(streamHash);
-    }
-
-    private async Task<bool> IsMd5EligibleForSkipAsync(IBuildConfiguration buildConfiguration, string md5)
-    {
-      var priorEntry = await _dbContext.ManifestHistoryEntries.FindAsync(md5);
-      return priorEntry?.IsBlackListed == true && buildConfiguration.SkipKnownMods;
+      else
+      {
+        result = output.MarkAsMalformed(this, $"Invalid version: {RepositoryManifest.Version}");
+        return false;
+      }
     }
   }
 }

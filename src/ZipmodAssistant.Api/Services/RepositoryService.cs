@@ -17,17 +17,20 @@ namespace ZipmodAssistant.Api.Services
   {
     private readonly ILoggerService _loggerService;
     private readonly IManifestService _manifestService;
+    private readonly IOutputService _outputService;
     private readonly ICardProvider _cardProvider;
     private readonly ZipmodDbContext _dbContext;
 
     public RepositoryService(
       ILoggerService logger,
       IManifestService manifestService,
+      IOutputService outputService,
       ICardProvider cardProvider,
       ZipmodDbContext dbContext)
     {
       _loggerService = logger;
       _manifestService = manifestService;
+      _outputService = outputService;
       _cardProvider = cardProvider;
       _dbContext = dbContext;
     }
@@ -46,7 +49,7 @@ namespace ZipmodAssistant.Api.Services
       }
       var repository = new BuildRepository(rootDirectory, configuration, _dbContext);
 
-      var repositoryItems = Directory.EnumerateFiles(rootDirectory, "*.(png|zip|zipmod)", SearchOption.AllDirectories)
+      var repositoryItems = Directory.EnumerateFiles(rootDirectory, "*.(png|zip|zipmod|unity3d)", SearchOption.AllDirectories)
         .Select(filename =>
         {
           var fileInfo = new FileInfo(filename);
@@ -55,6 +58,7 @@ namespace ZipmodAssistant.Api.Services
             ".png" => new RepositoryImage(fileInfo, _cardProvider),
             ".zipmod" => new BuildRepository(fileInfo, _dbContext),
             ".zip" => new BuildRepository(fileInfo, _dbContext),
+            ".unity3d" => new RepositoryUnityResx(fileInfo),
             _ => throw new Exception($"Invalid extension {fileInfo.Extension}"),
           };
           return item;
@@ -67,7 +71,7 @@ namespace ZipmodAssistant.Api.Services
     public async Task ProcessRepositoryAsync(IBuildConfiguration buildConfiguration, IBuildRepository repository)
     {
       var startTime = DateTime.Now;
-      _loggerService.Log($"Processing repository at {repository.RootDirectory} containing {repository.Count()} items");
+      _loggerService.Log($"Processing repository at {repository.RootDirectory} containing {repository.Count} items");
       _loggerService.Log($"Using configuration input: {buildConfiguration.InputDirectory}, output: {buildConfiguration.OutputDirectory}, cache: {buildConfiguration.CacheDirectory}");
       foreach (var item in repository)
       {
@@ -76,14 +80,21 @@ namespace ZipmodAssistant.Api.Services
           _loggerService.Log($"Unknown item found at {item.FileInfo.FullName}, skipping");
           continue;
         }
-        var processResult = await item.ProcessAsync(buildConfiguration, repository);
-        if (processResult)
+        try
         {
-          _loggerService.Log($"Completed processing {item.FileInfo.FullName}");
+          var processResult = await item.ProcessAsync(_outputService, repository);
+          if (processResult is SuccessProcessResult)
+          {
+            _loggerService.Log($"Completed processing {item.FileInfo.FullName}");
+          }
+          else
+          {
+            _loggerService.Log($"Failed to process {item.FileInfo.FullName}");
+          }
         }
-        else
+        catch (MalformedManifestException ex)
         {
-          _loggerService.Log($"Failed to process {item.FileInfo.FullName}");
+          _loggerService.Log(ex);
         }
       }
       var endTime = DateTime.Now;

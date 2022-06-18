@@ -4,25 +4,23 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:pages="clr-namespace:ZipmodAssistant.App.Views.Pages"
-        xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         mc:Ignorable="d"
         Height="750"
         Width="1200"
         Style="{StaticResource UiWindow}"
-        Background="Transparent"
         WindowStyle="None"
         d:DesignWidth="800"
         d:DesignHeight="450"
         Loaded="WindowLoaded"
         ResizeMode="NoResize">
-
   <Grid x:Name="ContentGrid">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />
       <RowDefinition Height="*" />
     </Grid.RowDefinitions>
     <StackPanel Grid.Row="0">
-      <wpfui:TitleBar ForceShutdown="True" ShowMaximize="True" ShowMinimize="True" UseSnapLayout="True" Title="Zipmod Assistant" />
+      <ui:TitleBar ForceShutdown="True" ShowMaximize="True" ShowMinimize="True" UseSnapLayout="True" Title="Zipmod Assistant" />
       <Menu Margin="16,0,16,0">
         <Menu.Background>
           <SolidColorBrush Color="{StaticResource ApplicationBackgroundColor}" />
@@ -45,22 +43,22 @@
         <ColumnDefinition Width="*" />
       </Grid.ColumnDefinitions>
 
-      <wpfui:NavigationFluent Grid.Column="0" Margin="0,0,12,0" Frame="{Binding ElementName=RootFrame}" x:Name="Navigation">
-        <wpfui:NavigationFluent.Items>
-          <wpfui:NavigationItem Content="Home" Icon="Home24" PageTag="home" Page="{x:Type pages:Home}" />
-          <wpfui:NavigationItem Content="History" Icon="Archive24" PageTag="history" Page="{x:Type pages:History}" />
-        </wpfui:NavigationFluent.Items>
-        <wpfui:NavigationFluent.Footer>
-          <wpfui:NavigationItem Content="Settings" Icon="Diversity24" PageTag="settings" Page="{x:Type pages:Settings}" />
-        </wpfui:NavigationFluent.Footer>
-      </wpfui:NavigationFluent>
+      <ui:NavigationFluent Grid.Column="0" Margin="0,0,12,0" Frame="{Binding ElementName=RootFrame}" x:Name="Navigation">
+        <ui:NavigationFluent.Items>
+          <ui:NavigationItem Content="Home" Icon="Home24" PageTag="home" PageType="{x:Type pages:Home}" />
+          <ui:NavigationItem Content="History" Icon="Archive24" PageTag="history" PageType="{x:Type pages:History}" />
+        </ui:NavigationFluent.Items>
+        <ui:NavigationFluent.Footer>
+          <ui:NavigationItem Content="Settings" Icon="Diversity24" PageTag="settings" PageType="{x:Type pages:Settings}" />
+        </ui:NavigationFluent.Footer>
+      </ui:NavigationFluent>
       <Border Grid.Column="1" Background="{DynamicResource ControlFillColorDefaultBrush}" CornerRadius="8,0,0,0">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
           </Grid.RowDefinitions>
-          <wpfui:Breadcrumb Grid.Row="0" Margin="18" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="24" Navigation="{Binding ElementName=Navigation}" />
+          <ui:Breadcrumb Grid.Row="0" Margin="18" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="24" Navigation="{Binding ElementName=Navigation}" />
           <Frame Name="RootFrame" Grid.Row="1" Margin="64,0,0,16" />
         </Grid>
       </Border>

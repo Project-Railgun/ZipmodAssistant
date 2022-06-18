@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ZipmodAssistant.Api.Enums;
 using ZipmodAssistant.Api.Interfaces.Models;
+using ZipmodAssistant.Api.Interfaces.Services;
 using ZipmodAssistant.Tarot.Interfaces.Providers;
 
 namespace ZipmodAssistant.Api.Models
@@ -25,10 +26,15 @@ namespace ZipmodAssistant.Api.Models
       _cardProvider = cardProvider;
     }
 
-    public async Task<bool> ProcessAsync(IBuildConfiguration buildConfiguration, IBuildRepository repository)
+    public async Task<IProcessResult> ProcessAsync(IOutputService output, IBuildRepository repository)
     {
       var card = await _cardProvider.TryReadCardAsync(FileInfo);
-      return card != null;
+      if (card == null)
+      {
+        return output.MarkAsSkipped(this, "No data after IEND");
+      }
+
+      return output.MarkAsCompleted(this);
     }
   }
 }

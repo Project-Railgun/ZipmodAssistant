@@ -1,5 +1,5 @@
 ﻿using System.Windows;
-using WPFUI.Appearance;
+using Wpf.Ui.Appearance;
 
 namespace ZipmodAssistant.App.Views
 {
@@ -11,7 +11,7 @@ namespace ZipmodAssistant.App.Views
     public Container()
     {
       InitializeComponent();
-      WPFUI.Appearance.Background.Apply(this, BackgroundType.Mica);
+      Wpf.Ui.Appearance.Background.Apply(this, BackgroundType.Mica);
     }
 
     void WindowLoaded(object sender, RoutedEventArgs e)

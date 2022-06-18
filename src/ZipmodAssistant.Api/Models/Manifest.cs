@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -15,6 +16,7 @@ namespace ZipmodAssistant.Api.Models
   public class Manifest : IManifest
   {
     public string FileLocation { get; set; } = string.Empty;
+    public string Hash { get; private set; }
     [XmlAttribute("schema-ver")]
     public string SchemaVersion { get; set; } = string.Empty;
     [XmlElement("guid", IsNullable = false)]
@@ -43,6 +45,10 @@ namespace ZipmodAssistant.Api.Models
         var streamReader = new StreamReader(stream);
         streamReader.BaseStream.Seek(0, SeekOrigin.Begin);
         manifest._rawContent = await streamReader.ReadToEndAsync();
+        streamReader.BaseStream.Seek(0, SeekOrigin.Begin);
+        using var md5 = MD5.Create();
+        var streamHash = await md5.ComputeHashAsync(streamReader.BaseStream);
+        manifest.Hash = Convert.ToBase64String(streamHash);
         return manifest;
       }
       throw new ArgumentException("Invalid manifest XML", nameof(stream));

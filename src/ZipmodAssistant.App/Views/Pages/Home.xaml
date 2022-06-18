@@ -77,7 +77,12 @@
         <StackPanel Grid.Row="4" Grid.Column="1">
           <wpfui:ToggleSwitch Margin="0,16,0,0">AIS</wpfui:ToggleSwitch>
           <wpfui:ToggleSwitch Margin="0,16,0,0">HS2</wpfui:ToggleSwitch>
-          <wpfui:Hyperlink Margin="0,16,0,0">Remove all</wpfui:Hyperlink>
+          <TextBlock Margin="0,16,0,0" Cursor="Hand">
+            <TextBlock.Foreground>
+              <SolidColorBrush Color="{StaticResource SystemAccentColorLight1}"/>
+            </TextBlock.Foreground>
+            Remove all
+          </TextBlock>
         </StackPanel>
       </Grid>
     </StackPanel>

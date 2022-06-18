@@ -24,6 +24,7 @@ namespace ZipmodAssistant.Tarot.Providers
       try
       {
         using var stream = fileInfo.OpenRead();
+        // TODO: compress everything up until IEND
         using var additionalContentReader = await CardUtilities.ReadAdditionalBytesAsync(stream);
         if (additionalContentReader.BaseStream.Length == 0)
         {

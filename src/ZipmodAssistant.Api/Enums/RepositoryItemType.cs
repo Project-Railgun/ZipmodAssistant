@@ -4,6 +4,7 @@
   {
     Image,
     Repository,
+    UnityResx,
     Unknown,
   }
 }

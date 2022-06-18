@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ZipmodAssistant.Api.Enums;
+using ZipmodAssistant.Api.Interfaces.Services;
 
 namespace ZipmodAssistant.Api.Interfaces.Models
 {
@@ -13,6 +14,6 @@ namespace ZipmodAssistant.Api.Interfaces.Models
     FileInfo FileInfo { get; }
     byte[] Hash { get; }
 
-    Task<bool> ProcessAsync(IBuildConfiguration buildConfiguration, IBuildRepository repository);
+    Task<IProcessResult> ProcessAsync(IOutputService output, IBuildRepository repository);
   }
 }

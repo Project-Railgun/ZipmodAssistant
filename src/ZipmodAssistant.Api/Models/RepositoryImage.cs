@@ -16,7 +16,7 @@ namespace ZipmodAssistant.Api.Models
 
     public FileInfo FileInfo { get; }
 
-    public byte[] Hash => Array.Empty<byte>();
+    public string Hash { get; private set; }
 
     private readonly ICardProvider _cardProvider;
 
@@ -26,7 +26,7 @@ namespace ZipmodAssistant.Api.Models
       _cardProvider = cardProvider;
     }
 
-    public async Task<IProcessResult> ProcessAsync(IOutputService output, IBuildRepository repository)
+    public async Task<IProcessResult> ProcessAsync(IBuildConfiguration buildConfig, IOutputService output)
     {
       var card = await _cardProvider.TryReadCardAsync(FileInfo);
       if (card == null)

@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Windows;
 using ZipmodAssistant.Api.Data;
+using ZipmodAssistant.Api.Extensions;
 using ZipmodAssistant.Api.Interfaces.Services;
 using ZipmodAssistant.Api.Services;
 using ZipmodAssistant.App.Extensions;
@@ -16,7 +18,7 @@ namespace ZipmodAssistant.App
     /// </summary>
   public partial class App : Application
   {
-    private IServiceProvider _serviceProvider;
+    private readonly IServiceProvider _serviceProvider;
 
     public App()
     {
@@ -27,27 +29,9 @@ namespace ZipmodAssistant.App
       DependencyInjectionSource.ServiceProvider = _serviceProvider;
     }
 
-    private void UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    void UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
       throw new NotImplementedException();
-    }
-
-    void ConfigureServices(IServiceCollection services)
-    {
-      // configure data sources
-      services.AddDbContext<ZipmodDbContext>(options =>
-      {
-        options.UseSqlite("Data Source = ZipmodAssistant.db");
-      });
-
-      // configure services
-      services.AddScoped<ILoggerService, LoggerService>();
-      services.AddScoped<IManifestService, ManifestService>();
-      // configure view models
-      services.AddScoped<HomeViewModel>();
-
-      // configure windows
-      services.AddSingleton<Container>();
     }
 
     void OnStartup(object sender, StartupEventArgs args)
@@ -58,6 +42,20 @@ namespace ZipmodAssistant.App
         throw new ApplicationException("Container is null. Ensure the services are properly configured");
       }
       main.Show();
+    }
+
+    static void ConfigureServices(IServiceCollection services)
+    {
+      // configure data sources
+      services.AddSqlite<ZipmodDbContext>("Data Source = ZipmodAssistant.db");
+
+      // configure services
+      services.AddZipmodAssistant();
+      // configure view models
+      services.AddScoped<HomeViewModel>();
+
+      // configure windows
+      services.AddSingleton<Container>();
     }
   }
 }

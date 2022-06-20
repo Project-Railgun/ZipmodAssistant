@@ -16,63 +16,64 @@ namespace ZipmodAssistant.Api.Services
   public class RepositoryService : IRepositoryService
   {
     private readonly ILoggerService _loggerService;
-    private readonly IManifestService _manifestService;
     private readonly IOutputService _outputService;
     private readonly ICardProvider _cardProvider;
     private readonly ZipmodDbContext _dbContext;
 
     public RepositoryService(
       ILoggerService logger,
-      IManifestService manifestService,
       IOutputService outputService,
       ICardProvider cardProvider,
       ZipmodDbContext dbContext)
     {
       _loggerService = logger;
-      _manifestService = manifestService;
       _outputService = outputService;
       _cardProvider = cardProvider;
       _dbContext = dbContext;
     }
 
-    public async Task<IBuildRepository> GetRepositoryFromDirectoryAsync(string rootDirectory)
+    public async Task<IBuildRepository> GetRepositoryFromDirectoryAsync(IBuildConfiguration configuration)
     {
-      IZipmodConfiguration configuration;
-      var manifestLocation = Path.Combine(rootDirectory, "manifest.xml");
-      if (File.Exists(manifestLocation))
-      {
-        configuration = await _manifestService.ReadConfigurationFromManifestAsync(manifestLocation);
-      }
-      else
-      {
-        throw new InvalidRepositoryException(rootDirectory);
-      }
-      var repository = new BuildRepository(rootDirectory, configuration, _dbContext);
+      var repository = new BuildRepository(configuration, _dbContext);
 
-      var repositoryItems = Directory.EnumerateFiles(rootDirectory, "*.(png|zip|zipmod|unity3d)", SearchOption.AllDirectories)
-        .Select(filename =>
+      var repositoryItems = Directory.EnumerateFiles(configuration.InputDirectory, "*.(png|zip|zipmod|unity3d)", SearchOption.AllDirectories);
+        //.Select(filename =>
+        //{
+        //  var fileInfo = new FileInfo(filename);
+        //  IRepositoryItem item = fileInfo.Extension switch
+        //  {
+        //    ".png" => new RepositoryImage(fileInfo, _cardProvider),
+        //    ".zipmod" => new RepositoryZipmod(fileInfo, _dbContext),
+        //    ".zip" => new RepositoryZipmod(fileInfo, _dbContext),
+        //    ".unity3d" => new RepositoryUnityResx(fileInfo),
+        //    _ => throw new Exception($"Invalid extension {fileInfo.Extension}"),
+        //  };
+        //  return item;
+        //});
+      await Parallel.ForEachAsync(repositoryItems, async (filename, cancelToken) =>
+      {
+        await Task.Run(() =>
         {
           var fileInfo = new FileInfo(filename);
           IRepositoryItem item = fileInfo.Extension switch
           {
             ".png" => new RepositoryImage(fileInfo, _cardProvider),
-            ".zipmod" => new BuildRepository(fileInfo, _dbContext),
-            ".zip" => new BuildRepository(fileInfo, _dbContext),
+            ".zipmod" => new RepositoryZipmod(fileInfo, _dbContext),
+            ".zip" => new RepositoryZipmod(fileInfo, _dbContext),
             ".unity3d" => new RepositoryUnityResx(fileInfo),
             _ => throw new Exception($"Invalid extension {fileInfo.Extension}"),
           };
-          return item;
-        });
-      
+          repository.Add(item);
+        }, cancelToken);
+      });
 
       return repository;
     }
 
-    public async Task ProcessRepositoryAsync(IBuildConfiguration buildConfiguration, IBuildRepository repository)
+    public async Task ProcessRepositoryAsync(IBuildRepository repository)
     {
       var startTime = DateTime.Now;
-      _loggerService.Log($"Processing repository at {repository.RootDirectory} containing {repository.Count} items");
-      _loggerService.Log($"Using configuration input: {buildConfiguration.InputDirectory}, output: {buildConfiguration.OutputDirectory}, cache: {buildConfiguration.CacheDirectory}");
+      _loggerService.Log($"Using configuration input: {repository.Configuration.InputDirectory}, output: {repository.Configuration.OutputDirectory}, cache: {repository.Configuration.CacheDirectory}");
       foreach (var item in repository)
       {
         if (item.ItemType == RepositoryItemType.Unknown)
@@ -82,7 +83,7 @@ namespace ZipmodAssistant.Api.Services
         }
         try
         {
-          var processResult = await item.ProcessAsync(_outputService, repository);
+          var processResult = await item.ProcessAsync(repository.Configuration, _outputService);
           if (processResult is SuccessProcessResult)
           {
             _loggerService.Log($"Completed processing {item.FileInfo.FullName}");

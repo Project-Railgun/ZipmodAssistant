@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ZipmodAssistant.Api.Interfaces.Models
+﻿namespace ZipmodAssistant.Api.Interfaces.Models
 {
-  public interface IBuildRepository : IList<IRepositoryItem>, IRepositoryItem
+  /// <summary>
+  ///   Contains a collection of <see cref="IRepositoryItem"/> with a set configuration
+  /// </summary>
+  public interface IBuildRepository : IList<IRepositoryItem>
   {
-    IZipmodConfiguration Configuration { get; set; }
-    string RootDirectory { get; set; }
+    /// <summary>
+    ///   The build configuration to use during processing
+    /// </summary>
+    IBuildConfiguration Configuration { get; }
   }
 }

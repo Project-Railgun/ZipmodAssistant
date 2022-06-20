@@ -7,6 +7,9 @@ using ZipmodAssistant.Api.Enums;
 
 namespace ZipmodAssistant.Api.Interfaces.Services
 {
+  /// <summary>
+  ///   The logging service used in the library
+  /// </summary>
   public interface ILoggerService
   {
     EventHandler<string>? MessageLogged { get; set; }

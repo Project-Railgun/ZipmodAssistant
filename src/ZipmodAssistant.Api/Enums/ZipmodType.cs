@@ -6,5 +6,6 @@
     Studio,
     MapGame,
     MapStudio,
+    Unknown,
   }
 }

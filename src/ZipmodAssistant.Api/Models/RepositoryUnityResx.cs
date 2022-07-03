@@ -50,11 +50,12 @@ namespace ZipmodAssistant.Api.Models
       {
         var assetsManager = new AssetsManager();
         var bundle = assetsManager.LoadBundleFile(FileInfo.FullName);
-        using var tempFileStream = output.ReserveCacheFile(this);
+        using var tempFileStream = output.ReserveCacheFile(this, buildConfig);
         using var assetsFileWriter = new AssetsFileWriter(tempFileStream);
         bundle.file.Pack(bundle.file.reader, assetsFileWriter, AssetBundleCompressionType.LZ4);
+        return output.MarkAsCompleted(this, buildConfig);
       }
-      return output.MarkAsCompleted(this);
+      return output.CopyOriginal(this, buildConfig);
     }
   }
 }

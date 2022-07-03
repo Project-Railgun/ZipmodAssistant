@@ -9,7 +9,7 @@ using ZipmodAssistant.Shared.Enums;
 
 namespace ZipmodAssistant.Api.Utilities
 {
-  internal static class TextUtilties
+  internal static class TextUtilities
   {
     private static readonly Dictionary<TargetGame, string[]> _gameAliases = new()
     {
@@ -38,7 +38,7 @@ namespace ZipmodAssistant.Api.Utilities
       return false;
     }
 
-    public static string ResolveFilenameFromConfiguration(IZipmodConfiguration config)
+    public static string ResolveFilenameFromManifest(IManifest config)
     {
       var nameToUse = config.Name ?? config.Guid;
       return $"[{config.Author}] {nameToUse} v{config.Version}.zipmod";

@@ -32,11 +32,11 @@
     </Grid.RowDefinitions>
     <StackPanel HorizontalAlignment="Left" Background="Transparent" Grid.Column="0">
       <Label FontWeight="DemiBold">Input Folder</Label>
-      <controls:FileInput Margin="0,8,0,16" Value="{Binding DirectoryConfiguration.InputDirectory}" />
+      <controls:FileInput Margin="0,8,0,16" Value="{Binding InputDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
       <Label FontWeight="DemiBold">Output Folder</Label>
-      <controls:FileInput Margin="0,8,0,16" Value="{Binding DirectoryConfiguration.OutputDirectory}" />
+      <controls:FileInput Margin="0,8,0,16" Value="{Binding OutputDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
       <Label FontWeight="DemiBold">Cache Folder</Label>
-      <controls:FileInput Margin="0,8,0,16" Value="{Binding DirectoryConfiguration.CacheDirectory}" />
+      <controls:FileInput Margin="0,8,0,16" Value="{Binding CacheDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
       <wpfui:Button Margin="0,24,0,0" Click="StartClicked" Visibility="{Binding IsBuilding, Converter={StaticResource BooleanToVisibilityInverted}}">Start</wpfui:Button>
       <ProgressBar Margin="0,24,0,0" Visibility="{Binding IsBuilding, Converter={StaticResource BooleanToVisibility}}" Value="{Binding BuildProgress}" Maximum="100" />
 
@@ -45,24 +45,24 @@
       <Grid Margin="0,0,0,0">
         <Grid.RowDefinitions>
           <RowDefinition Height="32" />
-          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
           <RowDefinition Height="32" />
           <RowDefinition Height="48" />
-          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="Auto" />
-          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <Label Grid.Row="0" FontWeight="DemiBold">Options</Label>
         <StackPanel Grid.Column="0" Grid.Row="1" Margin="0,0,32,0">
-          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding BuildConfiguration.RandomizeCab}">Randomize Cab</wpfui:ToggleSwitch>
-          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding BuildConfiguration.SkipRenaming}">Skip Renaming</wpfui:ToggleSwitch>
+          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding RandomizeCab}">Randomize Cab</wpfui:ToggleSwitch>
+          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipRenaming}">Skip Renaming</wpfui:ToggleSwitch>
         </StackPanel>
         <StackPanel Grid.Column="1" Grid.Row="1">
-          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding BuildConfiguration.SkipCompression}">Skip Compression</wpfui:ToggleSwitch>
-          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding BuildConfiguration.SkipJunkCleanup}">Skip Junk Cleanup</wpfui:ToggleSwitch>
+          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipCompression}">Skip Compression</wpfui:ToggleSwitch>
+          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipCleanup}">Skip Junk Cleanup</wpfui:ToggleSwitch>
         </StackPanel>
 
         <StackPanel Grid.Row="3" Grid.ColumnSpan="2">
@@ -86,14 +86,14 @@
         </StackPanel>
       </Grid>
     </StackPanel>
-    <ScrollViewer Grid.ColumnSpan="3" Grid.Row="2" VerticalScrollBarVisibility="Visible" x:Name="LogMessageScroll">
-      <ItemsControl ItemsSource="{Binding LogMessages}" Padding="16">
+    <ScrollViewer Grid.ColumnSpan="3" Grid.Row="2" VerticalScrollBarVisibility="Visible" x:Name="LogMessageScroll" MaxWidth="820">
+      <ItemsControl ItemsSource="{Binding LogMessages}" Padding="16" HorizontalAlignment="Stretch">
         <ItemsControl.Background>
           <SolidColorBrush Color="{StaticResource ApplicationBackgroundColor}" />
         </ItemsControl.Background>
         <ItemsControl.ItemTemplate>
           <DataTemplate>
-            <TextBlock Text="{Binding}" LineHeight="24" />
+            <TextBlock Text="{Binding}" LineHeight="24" TextWrapping="Wrap" />
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>

@@ -31,7 +31,7 @@
           <MenuItem Header="Save" IsEnabled="False" />
           <MenuItem Header="Save As..." IsEnabled="False" />
           <Separator />
-          <MenuItem Header="Exit" InputGestureText="Alt+F4" />
+          <MenuItem Header="Exit" InputGestureText="Alt+F4" Click="ExitClicked" />
         </MenuItem>
         <MenuItem Header="Edit" />
       </Menu>

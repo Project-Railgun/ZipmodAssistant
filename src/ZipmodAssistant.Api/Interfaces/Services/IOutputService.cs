@@ -19,26 +19,26 @@ namespace ZipmodAssistant.Api.Interfaces.Services
     /// <param name="item"></param>
     /// <param name="reason"></param>
     /// <returns></returns>
-    IProcessResult MarkAsMalformed(IRepositoryItem item, string reason);
+    IProcessResult MarkAsMalformed(IRepositoryItem item, IBuildConfiguration buildConfiguration, string reason);
     /// <summary>
     ///   Moves <paramref name="item"/> to OUTPUT/blacklisted and saves the blacklist
     ///   information to the database
     /// </summary>
     /// <param name="item"></param>
     /// <returns></returns>
-    IProcessResult MarkAsBlacklisted(IRepositoryItem item);
+    IProcessResult MarkAsBlacklisted(IRepositoryItem item, IBuildConfiguration buildConfiguration);
     /// <summary>
     ///   Copies <paramref name="item"/> to the OUTPUT/original directory
     /// </summary>
     /// <param name="item"></param>
     /// <returns></returns>
-    IProcessResult CopyOriginal(IRepositoryItem item);
+    IProcessResult CopyOriginal(IRepositoryItem item, IBuildConfiguration buildConfiguration);
     /// <summary>
     ///   Moves <paramref name="item"/> to OUTPUT/treated/[targetgame]/[modtype]
     /// </summary>
     /// <param name="item"></param>
     /// <returns></returns>
-    IProcessResult MarkAsCompleted(IRepositoryItem item);
+    IProcessResult MarkAsCompleted(IRepositoryItem item, IBuildConfiguration buildConfiguration);
     /// <summary>
     ///   Moves <paramref name="item"/> to OUTPUT/skipped, documenting the reason
     ///   in the logger
@@ -46,7 +46,7 @@ namespace ZipmodAssistant.Api.Interfaces.Services
     /// <param name="item"></param>
     /// <param name="reason"></param>
     /// <returns></returns>
-    IProcessResult MarkAsSkipped(IRepositoryItem item, string reason);
+    IProcessResult MarkAsSkipped(IRepositoryItem item, IBuildConfiguration buildConfiguration, string reason);
     /// <summary>
     ///   Creates a temporary file for <paramref name="item"/>
     /// </summary>
@@ -56,7 +56,7 @@ namespace ZipmodAssistant.Api.Interfaces.Services
     /// </remarks>
     /// <param name="item"></param>
     /// <returns>The name of the temporary file</returns>
-    string ReserveCache(IRepositoryItem item);
+    string ReserveCache(IRepositoryItem item, IBuildConfiguration buildConfiguration);
     /// <summary>
     ///   Creates a temporary file for <paramref name="item"/>
     /// </summary>
@@ -66,7 +66,7 @@ namespace ZipmodAssistant.Api.Interfaces.Services
     /// </remarks>
     /// <param name="item"></param>
     /// <returns>A filestream for the temporary file</returns>
-    FileStream ReserveCacheFile(IRepositoryItem item);
+    FileStream ReserveCacheFile(IRepositoryItem item, IBuildConfiguration buildConfiguration);
     /// <summary>
     ///   Creates a temporary file for <paramref name="item"/> and writes <paramref name="data"/>
     ///   before returning
@@ -78,6 +78,6 @@ namespace ZipmodAssistant.Api.Interfaces.Services
     /// <param name="item"></param>
     /// <param name="data"></param>
     /// <returns></returns>
-    FileStream ReserveCacheFile(IRepositoryItem item, byte[] data);
+    FileStream ReserveCacheFile(IRepositoryItem item, IBuildConfiguration buildConfiguration, byte[] data);
   }
 }

@@ -15,7 +15,9 @@ namespace ZipmodAssistant.Api.Models
   [XmlRoot("manifest")]
   public class Manifest : IManifest
   {
+    [XmlIgnore]
     public string FileLocation { get; set; } = string.Empty;
+    [XmlIgnore]
     public string Hash { get; private set; }
     [XmlAttribute("schema-ver")]
     public string SchemaVersion { get; set; } = string.Empty;
@@ -36,13 +38,17 @@ namespace ZipmodAssistant.Api.Models
 
     private string _rawContent = string.Empty;
 
-    public static async Task<Manifest> ReadFromStreamAsync(Stream stream)
+    public static async Task<Manifest> ReadFromStreamAsync(Stream _stream)
     {
+      var buffer = new byte[_stream.Length];
+      await _stream.ReadAsync(buffer);
+      var stream = new MemoryStream(buffer);
       var serializer = new XmlSerializer(typeof(Manifest));
       var deserialized = serializer.Deserialize(stream);
       if (deserialized is Manifest manifest)
       {
         var streamReader = new StreamReader(stream);
+        
         streamReader.BaseStream.Seek(0, SeekOrigin.Begin);
         manifest._rawContent = await streamReader.ReadToEndAsync();
         streamReader.BaseStream.Seek(0, SeekOrigin.Begin);

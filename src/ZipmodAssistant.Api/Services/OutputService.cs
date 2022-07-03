@@ -1,92 +1,135 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using ZipmodAssistant.Api.Enums;
 using ZipmodAssistant.Api.Interfaces.Models;
 using ZipmodAssistant.Api.Interfaces.Services;
 using ZipmodAssistant.Api.Models;
+using ZipmodAssistant.Api.Utilities;
 
 namespace ZipmodAssistant.Api.Services
 {
   public class OutputService : IOutputService
   {
-    private static readonly Dictionary<string, FileStream> _tempFileStreams = new();
+    private static readonly ConcurrentDictionary<string, FileStream> _tempFileStreams = new();
+    private static readonly Regex _validNameRegex = new(@"^\[(.+)\]\s?(.+)\s?v([0-9]+(?:\.[0-9]+)?(?:\.[0-9]+))?\.zipmod$");
 
-    private readonly IBuildConfiguration _buildConfiguration;
     private readonly ILoggerService _logger;
 
-    public OutputService(IBuildConfiguration buildConfiguration, ILoggerService logger)
+    public OutputService(ILoggerService logger)
     {
-      _buildConfiguration = buildConfiguration;
       _logger = logger;
     }
 
-    public IProcessResult CopyOriginal(IRepositoryItem item)
+    public IProcessResult CopyOriginal(IRepositoryItem item, IBuildConfiguration buildConfiguration)
     {
-      throw new NotImplementedException();
+      var directory = Path.Join(buildConfiguration.OutputDirectory, "original");
+      Directory.CreateDirectory(directory);
+      var newLocation = Path.Join(directory, GetItemFilename(item));
+      File.Copy(item.FileInfo.FullName, newLocation, true);
+      _logger.Log($"Copied original to {newLocation}");
+      return new SuccessProcessResult(item);
     }
 
-    public IProcessResult MarkAsBlacklisted(IRepositoryItem item)
+    public IProcessResult MarkAsBlacklisted(IRepositoryItem item, IBuildConfiguration buildConfiguration)
     {
-      throw new NotImplementedException();
+      _logger.Log($"{item.FileInfo.Name} marked as black-listed");
+      return new SuccessProcessResult(item);
     }
 
-    public IProcessResult MarkAsCompleted(IRepositoryItem item)
+    public IProcessResult MarkAsCompleted(IRepositoryItem item, IBuildConfiguration buildConfiguration)
     {
-      var tempFilename = GetTempFilename(item);
-      if (_tempFileStreams.ContainsKey(tempFilename))
+      var directory = Path.Join(buildConfiguration.OutputDirectory, "treated");
+      Directory.CreateDirectory(directory);
+      var tempFilename = GetTempFilename(item, buildConfiguration);
+      if (_tempFileStreams.Remove(tempFilename, out var tempFilestream))
       {
         // finalize stream and close
+        tempFilestream.Dispose();
       }
-      else if (File.Exists(tempFilename))
+      if (File.Exists(tempFilename))
       {
-        // same as above, but we didn't create a stream for it
+        File.Copy(tempFilename, Path.Join(directory, item.FileInfo.Name), true);
       }
       else
       {
-        // do a straight copy to output
+        item.FileInfo.CopyTo(Path.Join(directory, item.FileInfo.Name), true);
       }
       return new SuccessProcessResult(item);
     }
 
-    public IProcessResult MarkAsMalformed(IRepositoryItem item, string reason)
+    public IProcessResult MarkAsMalformed(IRepositoryItem item, IBuildConfiguration buildConfiguration, string reason)
     {
-      throw new NotImplementedException();
+      var directory = Path.Join(buildConfiguration.OutputDirectory, "malformed");
+      Directory.CreateDirectory(directory);
+      var newLocation = Path.Join(directory, item.FileInfo.Name);
+      item.FileInfo.CopyTo(newLocation, true);
+      _logger.Log($"{item.FileInfo.Name} malformed ({reason})");
+      return new SuccessProcessResult(item);
     }
 
-    public IProcessResult MarkAsSkipped(IRepositoryItem item, string reason)
+    public IProcessResult MarkAsSkipped(IRepositoryItem item, IBuildConfiguration buildConfiguration, string reason)
     {
-      throw new NotImplementedException();
+      var directory = Path.Join(buildConfiguration.OutputDirectory, "skipped");
+      Directory.CreateDirectory(directory);
+      var newLocation = Path.Join(directory, item.FileInfo.Name);
+      item.FileInfo.CopyTo(newLocation, true);
+      _logger.Log($"{item.FileInfo.Name} skipped ({reason})");
+      return new SuccessProcessResult(item);
     }
 
-    public string ReserveCache(IRepositoryItem item)
+    public string ReserveCache(IRepositoryItem item, IBuildConfiguration buildConfiguration)
     {
-      var tempFilename = GetTempFilename(item);
-      if (File.Exists(tempFilename))
+      var tempFilename = GetTempFilename(item, buildConfiguration);
+      if (item.ItemType == RepositoryItemType.Repository)
       {
-        throw new UnauthorizedAccessException($"{item.FileInfo.Name} already has a temporary file reservation");
+        if (Directory.Exists(tempFilename))
+        {
+          Directory.Delete(tempFilename, true);
+        }
       }
-      File.Create(tempFilename).Close();
+      else
+      {
+        if (File.Exists(tempFilename))
+        {
+          throw new UnauthorizedAccessException($"{item.FileInfo.Name} already has a temporary file reservation");
+        }
+        File.Create(tempFilename).Close();
+      }
       return tempFilename;
     }
 
-    public FileStream ReserveCacheFile(IRepositoryItem item)
+    public FileStream ReserveCacheFile(IRepositoryItem item, IBuildConfiguration buildConfiguration)
     {
-      var tempFilename = GetTempFilename(item);
+      if (item.ItemType == RepositoryItemType.Repository)
+      {
+        throw new ArgumentException("Cannot reserve file for zipmod", nameof(item));
+      }
+      var tempFilename = GetTempFilename(item, buildConfiguration);
       if (_tempFileStreams.TryGetValue(tempFilename, out var existentStream))
       {
         _logger.Log($"Attempted access on temporary file {existentStream.SafeFileHandle}");
         throw new UnauthorizedAccessException($"{item.FileInfo.Name} already has a file stream open");
       }
       var stream = File.Create(tempFilename);
-      _tempFileStreams.Add(tempFilename, stream);
+      if (!_tempFileStreams.TryAdd(tempFilename, stream))
+      {
+        throw new Exception("Failed to add temp filestream to watching collection");
+      }
       return stream;
     }
 
-    public FileStream ReserveCacheFile(IRepositoryItem item, byte[] data)
+    public FileStream ReserveCacheFile(IRepositoryItem item, IBuildConfiguration buildConfiguration, byte[] data)
     {
-      var cacheStream = ReserveCacheFile(item);
+      if (item.ItemType == RepositoryItemType.Repository)
+      {
+        throw new ArgumentException("Cannot reserve file for zipmod", nameof(item));
+      }
+      var cacheStream = ReserveCacheFile(item, buildConfiguration);
       if (data.Length > 0)
       {
         cacheStream.Write(data, 0, data.Length);
@@ -94,7 +137,24 @@ namespace ZipmodAssistant.Api.Services
       return cacheStream;
     }
 
-    string GetTempFilename(IRepositoryItem item) =>
-      Path.Combine(_buildConfiguration.CacheDirectory, $"{item.FileInfo.GetHashCode()}.tmp");
+    static string GetTempFilename(IRepositoryItem item, IBuildConfiguration buildConfiguration) =>
+      Path.Combine(buildConfiguration.CacheDirectory, $"{item.FileInfo.GetHashCode()}.tmp");
+
+    static string GetItemFilename(IRepositoryItem item)
+    {
+      if (item is RepositoryZipmod zipmodItem)
+      {
+        if (_validNameRegex.IsMatch(item.FileInfo.Name))
+        {
+          return item.FileInfo.Name;
+        }
+        if (zipmodItem.Manifest != null)
+        {
+          return TextUtilities.ResolveFilenameFromManifest(zipmodItem.Manifest);
+        }
+        throw new ArgumentNullException(nameof(zipmodItem.Manifest));
+      }
+      return item.FileInfo.Name;
+    }
   }
 }

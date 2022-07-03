@@ -35,13 +35,13 @@ namespace ZipmodAssistant.Api.Models
       var manifestFromZip = zipArchive.GetEntry("manifest.xml");
       if (manifestFromZip == null)
       {
-        return output.MarkAsMalformed(this, "No manifest.xml found");
+        return output.MarkAsMalformed(this, buildConfig, "No manifest.xml found");
       }
       using var manifestStream = manifestFromZip.Open();
       Manifest = await Models.Manifest.ReadFromStreamAsync(manifestStream);
 
       var historyEntry = await _dbContext.ManifestHistoryEntries.FindAsync(Manifest.Hash);
-      if (!TryValidateRepository(output, historyEntry, out var validateResult))
+      if (!TryValidateRepository(output, buildConfig, historyEntry, out var validateResult))
       {
         return validateResult;
       }
@@ -53,28 +53,28 @@ namespace ZipmodAssistant.Api.Models
         Version = Manifest.Version,
         IsBlackListed = true,
       });
-      zipArchive.ExtractToDirectory(output.ReserveCache(this));
-      return output.MarkAsCompleted(this);
+      zipArchive.ExtractToDirectory(output.ReserveCache(this, buildConfig));
+      return output.MarkAsCompleted(this, buildConfig);
     }
 
 
-    bool TryValidateRepository(IOutputService output, ManifestHistoryEntry? historyEntry, out IProcessResult result)
+    bool TryValidateRepository(IOutputService output, IBuildConfiguration buildConfig, ManifestHistoryEntry? historyEntry, out IProcessResult result)
     {
       if (historyEntry?.IsBlackListed == true)
       {
-        result = output.MarkAsBlacklisted(this);
+        result = output.MarkAsBlacklisted(this, buildConfig);
         return false;
       }
       if (string.IsNullOrEmpty(Manifest.Guid))
       {
-        result = output.MarkAsMalformed(this, "No GUID found");
+        result = output.MarkAsMalformed(this, buildConfig, "No GUID found");
         return false;
       }
       if (Version.TryParse(Manifest.Version, out var newVersion))
       {
         if (historyEntry != null && Version.Parse(historyEntry.Version) > newVersion)
         {
-          result = output.MarkAsSkipped(this, $"A newer version is available: {historyEntry.Version}");
+          result = output.MarkAsSkipped(this, buildConfig, $"A newer version is available: {historyEntry.Version}");
           return false;
         }
         result = new SuccessProcessResult(this);
@@ -82,7 +82,7 @@ namespace ZipmodAssistant.Api.Models
       }
       else
       {
-        result = output.MarkAsMalformed(this, $"Invalid version: {Manifest.Version}");
+        result = output.MarkAsMalformed(this, buildConfig, $"Invalid version: {Manifest.Version}");
         return false;
       }
     }

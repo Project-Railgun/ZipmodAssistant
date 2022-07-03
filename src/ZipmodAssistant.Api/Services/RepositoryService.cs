@@ -17,17 +17,20 @@ namespace ZipmodAssistant.Api.Services
   {
     private readonly ILoggerService _loggerService;
     private readonly IOutputService _outputService;
+    private readonly ISessionService _sessionService;
     private readonly ICardProvider _cardProvider;
     private readonly ZipmodDbContext _dbContext;
 
     public RepositoryService(
       ILoggerService logger,
       IOutputService outputService,
+      ISessionService sessionService,
       ICardProvider cardProvider,
       ZipmodDbContext dbContext)
     {
       _loggerService = logger;
       _outputService = outputService;
+      _sessionService = sessionService;
       _cardProvider = cardProvider;
       _dbContext = dbContext;
     }
@@ -35,8 +38,9 @@ namespace ZipmodAssistant.Api.Services
     public async Task<IBuildRepository> GetRepositoryFromDirectoryAsync(IBuildConfiguration configuration)
     {
       var repository = new BuildRepository(configuration, _dbContext);
+      var repositoryLock = new object();
 
-      var repositoryItems = Directory.EnumerateFiles(configuration.InputDirectory, "*.(png|zip|zipmod|unity3d)", SearchOption.AllDirectories);
+      var repositoryItems = Directory.EnumerateFiles(configuration.InputDirectory, "*.*", SearchOption.AllDirectories);
         //.Select(filename =>
         //{
         //  var fileInfo = new FileInfo(filename);
@@ -55,15 +59,21 @@ namespace ZipmodAssistant.Api.Services
         await Task.Run(() =>
         {
           var fileInfo = new FileInfo(filename);
-          IRepositoryItem item = fileInfo.Extension switch
+          IRepositoryItem? item = fileInfo.Extension switch
           {
             ".png" => new RepositoryImage(fileInfo, _cardProvider),
             ".zipmod" => new RepositoryZipmod(fileInfo, _dbContext),
             ".zip" => new RepositoryZipmod(fileInfo, _dbContext),
             ".unity3d" => new RepositoryUnityResx(fileInfo),
-            _ => throw new Exception($"Invalid extension {fileInfo.Extension}"),
+            _ => null,
           };
-          repository.Add(item);
+          lock (repositoryLock)
+          {
+            if (item != null)
+            {
+              repository.Add(item);
+            }
+          }
         }, cancelToken);
       });
 
@@ -84,14 +94,7 @@ namespace ZipmodAssistant.Api.Services
         try
         {
           var processResult = await item.ProcessAsync(repository.Configuration, _outputService);
-          if (processResult is SuccessProcessResult)
-          {
-            _loggerService.Log($"Completed processing {item.FileInfo.FullName}");
-          }
-          else
-          {
-            _loggerService.Log($"Failed to process {item.FileInfo.FullName}");
-          }
+          await _sessionService.CommitResultAsync(processResult);
         }
         catch (MalformedManifestException ex)
         {
@@ -99,7 +102,7 @@ namespace ZipmodAssistant.Api.Services
         }
       }
       var endTime = DateTime.Now;
-      _loggerService.Log($"Processing complete, took {(endTime - startTime):Y}");
+      _loggerService.Log($"Processing complete, took {(endTime - startTime).TotalMilliseconds}ms");
     }
   }
 }

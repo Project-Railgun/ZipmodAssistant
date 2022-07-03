@@ -2,14 +2,18 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
+using System.IO;
+using System.Text.Json;
 using System.Windows;
 using ZipmodAssistant.Api.Data;
 using ZipmodAssistant.Api.Extensions;
+using ZipmodAssistant.Api.Interfaces.Models;
 using ZipmodAssistant.Api.Interfaces.Services;
 using ZipmodAssistant.Api.Services;
 using ZipmodAssistant.App.Extensions;
 using ZipmodAssistant.App.ViewModels;
 using ZipmodAssistant.App.Views;
+using ZipmodAssistant.Tarot.Extensions;
 
 namespace ZipmodAssistant.App
 {
@@ -51,8 +55,25 @@ namespace ZipmodAssistant.App
 
       // configure services
       services.AddZipmodAssistant();
+      services.AddTarot();
       // configure view models
-      services.AddScoped<HomeViewModel>();
+      services.AddSingleton<IBuildConfiguration, HomeViewModel>();
+      services.AddScoped(serviceProvider =>
+      {
+        if (File.Exists("config.json"))
+        {
+          try
+          {
+            var fileContents = File.ReadAllBytes("config.json");
+            return JsonSerializer.Deserialize<HomeViewModel>(fileContents);
+          }
+          catch (JsonException ex)
+          {
+            Console.WriteLine($"Failed to deserialize config.json: {ex}");
+          }
+        }
+        return new HomeViewModel();
+      });
 
       // configure windows
       services.AddSingleton<Container>();

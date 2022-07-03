@@ -18,5 +18,10 @@ namespace ZipmodAssistant.App.Views
     {
       Watcher.Watch(this, BackgroundType.Mica, true);
     }
+
+    void ExitClicked(object sender, RoutedEventArgs e)
+    {
+      Application.Current.Shutdown();
+    }
   }
 }

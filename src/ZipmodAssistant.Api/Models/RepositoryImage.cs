@@ -31,10 +31,10 @@ namespace ZipmodAssistant.Api.Models
       var card = await _cardProvider.TryReadCardAsync(FileInfo);
       if (card == null)
       {
-        return output.MarkAsSkipped(this, "No data after IEND");
+        return output.MarkAsSkipped(this, buildConfig, "No data after IEND");
       }
 
-      return output.MarkAsCompleted(this);
+      return output.MarkAsCompleted(this, buildConfig);
     }
   }
 }

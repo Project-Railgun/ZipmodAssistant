@@ -10,7 +10,7 @@ using ZipmodAssistant.Tarot.Interfaces.Providers;
 
 namespace ZipmodAssistant.Api.Models
 {
-  public class RepositoryImage : IRepositoryItem
+  public class RepositoryImage : IZipmod
   {
     public RepositoryItemType ItemType => RepositoryItemType.Image;
 

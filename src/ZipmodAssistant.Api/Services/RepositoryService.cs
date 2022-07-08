@@ -15,7 +15,7 @@ namespace ZipmodAssistant.Api.Services
 {
   public class RepositoryService : IRepositoryService
   {
-    private readonly ILoggerService _loggerService;
+    private readonly ILoggerService _logger;
     private readonly IOutputService _outputService;
     private readonly ISessionService _sessionService;
     private readonly ICardProvider _cardProvider;
@@ -28,7 +28,7 @@ namespace ZipmodAssistant.Api.Services
       ICardProvider cardProvider,
       ZipmodDbContext dbContext)
     {
-      _loggerService = logger;
+      _logger = logger;
       _outputService = outputService;
       _sessionService = sessionService;
       _cardProvider = cardProvider;
@@ -40,41 +40,15 @@ namespace ZipmodAssistant.Api.Services
       var repository = new BuildRepository(configuration, _dbContext);
       var repositoryLock = new object();
 
-      var repositoryItems = Directory.EnumerateFiles(configuration.InputDirectory, "*.*", SearchOption.AllDirectories);
-        //.Select(filename =>
-        //{
-        //  var fileInfo = new FileInfo(filename);
-        //  IRepositoryItem item = fileInfo.Extension switch
-        //  {
-        //    ".png" => new RepositoryImage(fileInfo, _cardProvider),
-        //    ".zipmod" => new RepositoryZipmod(fileInfo, _dbContext),
-        //    ".zip" => new RepositoryZipmod(fileInfo, _dbContext),
-        //    ".unity3d" => new RepositoryUnityResx(fileInfo),
-        //    _ => throw new Exception($"Invalid extension {fileInfo.Extension}"),
-        //  };
-        //  return item;
-        //});
+      var repositoryItems = Directory.EnumerateFiles(configuration.InputDirectory, "*.(zipmod|zip)", SearchOption.AllDirectories);
+     
       await Parallel.ForEachAsync(repositoryItems, async (filename, cancelToken) =>
       {
-        await Task.Run(() =>
+        var zipmod = new Zipmod(configuration, filename);
+        lock (repositoryLock)
         {
-          var fileInfo = new FileInfo(filename);
-          IRepositoryItem? item = fileInfo.Extension switch
-          {
-            ".png" => new RepositoryImage(fileInfo, _cardProvider),
-            ".zipmod" => new RepositoryZipmod(fileInfo, _dbContext),
-            ".zip" => new RepositoryZipmod(fileInfo, _dbContext),
-            ".unity3d" => new RepositoryUnityResx(fileInfo),
-            _ => null,
-          };
-          lock (repositoryLock)
-          {
-            if (item != null)
-            {
-              repository.Add(item);
-            }
-          }
-        }, cancelToken);
+          repository.Add(zipmod);
+        }
       });
 
       return repository;
@@ -83,26 +57,26 @@ namespace ZipmodAssistant.Api.Services
     public async Task ProcessRepositoryAsync(IBuildRepository repository)
     {
       var startTime = DateTime.Now;
-      _loggerService.Log($"Using configuration input: {repository.Configuration.InputDirectory}, output: {repository.Configuration.OutputDirectory}, cache: {repository.Configuration.CacheDirectory}");
-      foreach (var item in repository)
+      _logger.Log($"Using configuration input: {repository.Configuration.InputDirectory}, output: {repository.Configuration.OutputDirectory}, cache: {repository.Configuration.CacheDirectory}");
+      await Parallel.ForEachAsync(repository, async (zipmod, cancelToken) =>
       {
-        if (item.ItemType == RepositoryItemType.Unknown)
-        {
-          _loggerService.Log($"Unknown item found at {item.FileInfo.FullName}, skipping");
-          continue;
-        }
         try
         {
-          var processResult = await item.ProcessAsync(repository.Configuration, _outputService);
-          await _sessionService.CommitResultAsync(processResult);
+          if (
+            zipmod.FileInfo.Extension.Equals(".zip", StringComparison.CurrentCultureIgnoreCase) ||
+            zipmod.FileInfo.Extension.Equals(".zipmod", StringComparison.CurrentCultureIgnoreCase))
+          {
+
+          }
+          await zipmod.ProcessAsync(repository.Configuration, _sessionService);
         }
-        catch (MalformedManifestException ex)
+        catch (Exception ex)
         {
-          _loggerService.Log(ex);
+          _logger.Log(ex);
         }
-      }
+      });
       var endTime = DateTime.Now;
-      _loggerService.Log($"Processing complete, took {(endTime - startTime).TotalMilliseconds}ms");
+      _logger.Log($"Processing complete, took {(endTime - startTime).TotalMilliseconds}ms");
     }
   }
 }

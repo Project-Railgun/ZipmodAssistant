@@ -12,7 +12,7 @@ using ZipmodAssistant.Api.Interfaces.Services;
 
 namespace ZipmodAssistant.Api.Models
 {
-  public class RepositoryZipmod : IRepositoryItem
+  public class RepositoryZipmod : IZipmod
   {
     public RepositoryItemType ItemType => RepositoryItemType.Repository;
 
@@ -32,12 +32,15 @@ namespace ZipmodAssistant.Api.Models
     public async Task<IProcessResult> ProcessAsync(IBuildConfiguration buildConfig, IOutputService output)
     {
       using var zipArchive = new ZipArchive(FileInfo.OpenRead());
-      var manifestFromZip = zipArchive.GetEntry("manifest.xml");
-      if (manifestFromZip == null)
+      var cachedLocation = output.ReserveCacheDirectory(this, buildConfig);
+      zipArchive.ExtractToDirectory(cachedLocation);
+      var manifestFile = new FileInfo(Path.Join(cachedLocation, "manifest.xml"));
+      if (!manifestFile.Exists)
       {
         return output.MarkAsMalformed(this, buildConfig, "No manifest.xml found");
       }
-      using var manifestStream = manifestFromZip.Open();
+      manifestFile.CopyTo("manifest-orig.xml", true);
+      using var manifestStream = manifestFile.OpenRead();
       Manifest = await Models.Manifest.ReadFromStreamAsync(manifestStream);
 
       var historyEntry = await _dbContext.ManifestHistoryEntries.FindAsync(Manifest.Hash);
@@ -53,7 +56,6 @@ namespace ZipmodAssistant.Api.Models
         Version = Manifest.Version,
         IsBlackListed = true,
       });
-      zipArchive.ExtractToDirectory(output.ReserveCache(this, buildConfig));
       return output.MarkAsCompleted(this, buildConfig);
     }
 

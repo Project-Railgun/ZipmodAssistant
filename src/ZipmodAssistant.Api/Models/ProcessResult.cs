@@ -9,9 +9,9 @@ namespace ZipmodAssistant.Api.Models
 {
   public abstract class ProcessResult : IProcessResult
   {
-    public IRepositoryItem Target { get; }
+    public IZipmod Target { get; }
 
-    protected ProcessResult(IRepositoryItem target)
+    protected ProcessResult(IZipmod target)
     {
       Target = target;
     }
@@ -19,7 +19,7 @@ namespace ZipmodAssistant.Api.Models
 
   public class SuccessProcessResult : ProcessResult
   {
-    public SuccessProcessResult(IRepositoryItem target) : base(target)
+    public SuccessProcessResult(IZipmod target) : base(target)
     {
 
     }
@@ -29,7 +29,7 @@ namespace ZipmodAssistant.Api.Models
   {
     public string Filename { get; }
 
-    public NonCardImageResult(IRepositoryItem target, string filename) : base(target)
+    public NonCardImageResult(IZipmod target, string filename) : base(target)
     {
       Filename = filename;
     }
@@ -39,7 +39,7 @@ namespace ZipmodAssistant.Api.Models
   {
     public string Reason { get; }
 
-    public MalformedItemResult(IRepositoryItem target, string reason) : base(target)
+    public MalformedItemResult(IZipmod target, string reason) : base(target)
     {
       Reason = reason;
     }
@@ -51,7 +51,7 @@ namespace ZipmodAssistant.Api.Models
     public string OldVersion { get; }
     public string NewVersion { get; }
 
-    public VersionMismatchResult(IRepositoryItem target, string guid, string oldVersion, string newVersion) : base(target)
+    public VersionMismatchResult(IZipmod target, string guid, string oldVersion, string newVersion) : base(target)
     {
       Guid = guid;
       OldVersion = oldVersion;
@@ -61,6 +61,6 @@ namespace ZipmodAssistant.Api.Models
 
   public class NoChangeProcessResult : ProcessResult
   {
-    public NoChangeProcessResult(IRepositoryItem target) : base(target) { }
+    public NoChangeProcessResult(IZipmod target) : base(target) { }
   }
 }

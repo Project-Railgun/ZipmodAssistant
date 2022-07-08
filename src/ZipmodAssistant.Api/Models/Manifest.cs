@@ -38,6 +38,8 @@ namespace ZipmodAssistant.Api.Models
 
     private string _rawContent = string.Empty;
 
+    public static Task<Manifest> ReadFromFileAsync(string filename) => ReadFromStreamAsync(File.OpenRead(filename));
+
     public static async Task<Manifest> ReadFromStreamAsync(Stream _stream)
     {
       var buffer = new byte[_stream.Length];

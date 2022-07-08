@@ -13,8 +13,8 @@ namespace ZipmodAssistant.Api.Interfaces.Models
   public interface IProcessResult
   {
     /// <summary>
-    ///   The <see cref="IRepositoryItem"/> this result originated from
+    ///   The <see cref="IZipmod"/> this result originated from
     /// </summary>
-    IRepositoryItem Target { get; }
+    IZipmod Target { get; }
   }
 }

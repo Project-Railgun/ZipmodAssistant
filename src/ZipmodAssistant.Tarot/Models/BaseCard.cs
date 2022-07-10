@@ -28,6 +28,8 @@ namespace ZipmodAssistant.Tarot.Models
     public FileInfo FileLocation { get; protected set; }
     public virtual CharacterSex Sex { get; protected set; } = CharacterSex.Unknown;
     public virtual string Personality { get; protected set; } = string.Empty;
+    public virtual Stream ImageStream { get; protected set; }
+    public virtual Stream DataStream { get; protected set; }
 
     protected BaseCard(FileInfo fileLocation)
     {

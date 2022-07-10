@@ -40,11 +40,11 @@ namespace ZipmodAssistant.App.Views.Pages
       _repositoryService = this.GetService<IRepositoryService>();
       _sessionService = this.GetService<ISessionService>();
 
-      _logger.MessageLogged += (sender, message) =>
+      _logger.MessageLogged += (sender, message) => Dispatcher.Invoke(() =>
       {
         ViewModel.LogMessages.Add(message);
         LogMessageScroll.ScrollToBottom();
-      };
+      });
       _logger.Log("Initiated logging");
       _logger.Log($"{Assembly.GetEntryAssembly().GetName().Name} v{Assembly.GetEntryAssembly().GetName().Version}");
       ViewModel.PropertyChanged += (sender, e) =>

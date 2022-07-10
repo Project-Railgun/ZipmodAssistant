@@ -65,19 +65,15 @@ namespace ZipmodAssistant.Api.Services
 
     static string GetItemFilename(IZipmod item)
     {
-      if (item is RepositoryZipmod zipmodItem)
+      if (_validNameRegex.IsMatch(item.FileInfo.Name))
       {
-        if (_validNameRegex.IsMatch(item.FileInfo.Name))
-        {
-          return item.FileInfo.Name;
-        }
-        if (zipmodItem.Manifest != null)
-        {
-          return TextUtilities.ResolveFilenameFromManifest(zipmodItem.Manifest);
-        }
-        throw new ArgumentNullException(nameof(zipmodItem.Manifest));
+        return item.FileInfo.Name;
       }
-      return item.FileInfo.Name;
+      if (item.Manifest != null)
+      {
+        return TextUtilities.ResolveFilenameFromManifest(item.Manifest);
+      }
+      throw new ArgumentException("Invalid zipmod", nameof(item));
     }
   }
 }

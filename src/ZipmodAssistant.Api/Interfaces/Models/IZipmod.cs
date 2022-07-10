@@ -26,12 +26,5 @@ namespace ZipmodAssistant.Api.Interfaces.Models
     ///   The manifest for the zipmod
     /// </summary>
     IManifest Manifest { get; }
-
-    /// <summary>
-    ///   Processes and validates the file
-    /// </summary>
-    /// <param name="buildConfig">The build configuration to use - typically owned by the <see cref="IBuildRepository"/></param>
-    /// <returns></returns>
-    Task ProcessAsync(IBuildConfiguration buildConfig, ISessionService session);
   }
 }

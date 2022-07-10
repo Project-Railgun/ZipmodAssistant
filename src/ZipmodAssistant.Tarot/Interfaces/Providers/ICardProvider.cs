@@ -10,6 +10,7 @@ namespace ZipmodAssistant.Tarot.Interfaces.Providers
   public interface ICardProvider
   {
     Task<ICard?> TryReadCardAsync(FileInfo fileInfo);
-    Task<FileInfo?> TryWriteCardAsync(string fileLocation, ICard card);
+    Task<ICard?> TryReadCardAsync(string filename);
+    Task<FileInfo?> TryWriteCardAsync(string filename, ICard card);
   }
 }

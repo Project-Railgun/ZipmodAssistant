@@ -12,7 +12,7 @@ namespace ZipmodAssistant.Api.Data.DataModels
     [Key]
     public string Hash { get; set; }
     public string Guid { get; set; }
-    public bool IsBlackListed { get; set; }
+    public bool CanSkip { get; set; }
     public string Version { get; set; }
   }
 }

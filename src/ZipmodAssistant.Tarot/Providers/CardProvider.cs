@@ -15,6 +15,8 @@ namespace ZipmodAssistant.Tarot.Providers
   {
     private readonly Dictionary<string, ICard> _cardCache = new();
 
+    public Task<ICard?> TryReadCardAsync(string filename) => TryReadCardAsync(new FileInfo(filename));
+
     public async Task<ICard?> TryReadCardAsync(FileInfo fileInfo)
     {
       if (_cardCache.ContainsKey(fileInfo.FullName))

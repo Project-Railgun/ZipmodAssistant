@@ -12,7 +12,8 @@ namespace ZipmodAssistant.Api.Extensions
         .AddScoped<ILoggerService, LoggerService>()
         .AddScoped<IOutputService, OutputService>()
         .AddScoped<IRepositoryService, RepositoryService>()
-        .AddScoped<ISessionService, SessionService>();
+        .AddScoped<ISessionService, SessionService>()
+        .AddScoped<IAssetService, AssetService>();
     }
   }
 }

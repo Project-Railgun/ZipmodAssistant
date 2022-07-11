@@ -7,12 +7,9 @@ namespace ZipmodAssistant.Api.Models
   {
     public IBuildConfiguration Configuration { get; set; }
 
-    private readonly ZipmodDbContext _dbContext;
-
-    public BuildRepository(IBuildConfiguration configuration, ZipmodDbContext dbContext)
+    public BuildRepository(IBuildConfiguration configuration)
     {
       Configuration = configuration;
-      _dbContext = dbContext;
     }
   }
 }

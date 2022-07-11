@@ -24,7 +24,14 @@ namespace ZipmodAssistant.Api.Services
 
     public void Log(string message, LogReason reason)
     {
+#if DEBUG
       MessageLogged?.Invoke(this, FormatLogMessage(message, reason));
+#else
+      if (reason != LogReason.Debug)
+      {
+        MessageLogged?.Invoke(this, FormatLogMessage(message, reason));
+      }
+#endif
     }
 
     private static string FormatLogMessage(string message, LogReason reason) => $"{DateTime.Now:T} [{reason}]: {message}";

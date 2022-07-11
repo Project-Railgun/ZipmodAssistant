@@ -8,8 +8,8 @@ namespace ZipmodAssistant.Tarot.Interfaces.Models
     FileInfo FileLocation { get; }
     CharacterSex Sex { get; }
     string Personality { get; }
-    Stream ImageStream { get; }
-    Stream DataStream { get; }
+    Stream ImageStream { get; set; }
+    Stream DataStream { get; set; }
 
     Task LoadAsync(BinaryReader reader);
   }

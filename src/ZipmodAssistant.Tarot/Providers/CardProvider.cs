@@ -26,12 +26,15 @@ namespace ZipmodAssistant.Tarot.Providers
       try
       {
         using var stream = fileInfo.OpenRead();
+        var imageStream = new MemoryStream();
+        var dataStream = new MemoryStream();
         // TODO: compress everything up until IEND
-        using var additionalContentReader = await CardUtilities.ReadAdditionalBytesAsync(stream);
-        if (additionalContentReader.BaseStream.Length == 0)
+        await CardUtilities.ReadDataToBuffersAsync(stream, imageStream, dataStream);
+        if (dataStream.Length == 0)
         {
           return null;
         }
+        using var additionalContentReader = new BinaryReader(dataStream);
 
         // product number. TODO: use somewhere?
         additionalContentReader.ReadInt32();
@@ -47,6 +50,8 @@ namespace ZipmodAssistant.Tarot.Providers
           TargetGame.AiSyoujyo => new AiCard(fileInfo),
           _ => throw new ArgumentOutOfRangeException($"Game type {targetGame} not supported"),
         };
+        card.ImageStream = imageStream;
+        card.DataStream = dataStream;
         await card.LoadAsync(additionalContentReader);
         _cardCache[fileInfo.FullName] = card;
         return card;

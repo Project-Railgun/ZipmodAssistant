@@ -55,6 +55,12 @@ namespace ZipmodAssistant.App.Views.Pages
       };
     }
 
+    private async void CopyAllClicked(object sender, RoutedEventArgs e)
+    {
+      Clipboard.SetText(string.Join(Environment.NewLine, ViewModel.LogMessages));
+      await ClipboardNotification.ShowAsync("Notification", "Copied to clipboard");
+    }
+
     private async void StartClicked(object sender, RoutedEventArgs e)
     {
       ViewModel.IsBuilding = true;

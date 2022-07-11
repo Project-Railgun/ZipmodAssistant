@@ -30,9 +30,11 @@ namespace ZipmodAssistant.Api.Services
     {
       var assetsManager = new AssetsManager();
       var bundle = assetsManager.LoadBundleFile(filename);
-      using var tempFileStream = File.Create($"{filename}.tmp");
+      var tempFileStream = File.Create($"{filename}.tmp");
       using var assetsFileWriter = new AssetsFileWriter(tempFileStream);
       bundle.file.Pack(bundle.file.reader, assetsFileWriter, AssetBundleCompressionType.LZ4);
+      tempFileStream.Dispose();
+      File.Move($"{filename}.tmp", filename, true);
       return true;
     });
 

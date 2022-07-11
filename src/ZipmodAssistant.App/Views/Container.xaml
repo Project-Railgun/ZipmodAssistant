@@ -21,10 +21,7 @@
     </Grid.RowDefinitions>
     <StackPanel Grid.Row="0">
       <ui:TitleBar ForceShutdown="True" ShowMaximize="True" ShowMinimize="True" UseSnapLayout="True" Title="Zipmod Assistant" />
-      <Menu Margin="16,0,16,0">
-        <Menu.Background>
-          <SolidColorBrush Color="{StaticResource ApplicationBackgroundColor}" />
-        </Menu.Background>
+      <Menu Margin="16,0,16,0" Background="Transparent">
         <MenuItem Header="File">
           <MenuItem Header="New" InputGestureText="Ctrl+N" />
           <MenuItem Header="Open" InputGestureText="Ctrl+O" />

@@ -87,16 +87,27 @@
       </Grid>
     </StackPanel>
     <ScrollViewer Grid.ColumnSpan="3" Grid.Row="2" VerticalScrollBarVisibility="Visible" x:Name="LogMessageScroll" MaxWidth="820">
-      <ItemsControl ItemsSource="{Binding LogMessages}" Padding="16" HorizontalAlignment="Stretch">
-        <ItemsControl.Background>
-          <SolidColorBrush Color="{StaticResource ApplicationBackgroundColor}" />
-        </ItemsControl.Background>
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <TextBlock Text="{Binding}" LineHeight="24" TextWrapping="Wrap" />
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
+      <Grid>
+        <ItemsControl ItemsSource="{Binding LogMessages}" Padding="16" HorizontalAlignment="Stretch">
+          <ItemsControl.Background>
+            <SolidColorBrush Color="{StaticResource ApplicationBackgroundColor}" />
+          </ItemsControl.Background>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding}" LineHeight="24" TextWrapping="Wrap" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <wpfui:Button Icon="Clipboard24" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="4" Cursor="Hand" ToolTip="Copy to clipboard" Click="CopyAllClicked" />
+        <wpfui:Snackbar Icon="Checkmark24" x:Name="ClipboardNotification" Timeout="5000">
+          <wpfui:Snackbar.Background>
+            <SolidColorBrush Color="{StaticResource SmokeFillColorDefault}" />
+          </wpfui:Snackbar.Background>
+          <wpfui:Snackbar.Foreground>
+            <SolidColorBrush Color="{StaticResource TextFillColorPrimary}" />
+          </wpfui:Snackbar.Foreground>
+        </wpfui:Snackbar>
+      </Grid>
     </ScrollViewer>
   </Grid>
 </Page>

@@ -16,7 +16,7 @@ namespace ZipmodAssistant.App.Views
 
     void WindowLoaded(object sender, RoutedEventArgs e)
     {
-      Watcher.Watch(this, BackgroundType.Mica, true);
+      Watcher.Watch(this, BackgroundType.Mica, true, true);
     }
 
     void ExitClicked(object sender, RoutedEventArgs e)

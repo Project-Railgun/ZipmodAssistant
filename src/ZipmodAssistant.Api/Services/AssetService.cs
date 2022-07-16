@@ -23,7 +23,7 @@ namespace ZipmodAssistant.Api.Services
 
     public async Task<bool> CompressImageAsync(IBuildConfiguration buildConfig, string filename)
     {
-      throw new NotImplementedException();
+      return false;
     }
 
     public Task<bool> CompressUnityResxAsync(IBuildConfiguration buildConfig, string filename) => Task.Run(() =>

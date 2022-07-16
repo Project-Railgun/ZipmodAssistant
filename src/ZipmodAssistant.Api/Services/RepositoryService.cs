@@ -131,18 +131,17 @@ namespace ZipmodAssistant.Api.Services
             switch (fileInfo.Extension.ToLower())
             {
               case ".png":
-                var card = await _cardProvider.TryReadCardAsync(fileInfo);
-                if (card == null || card.DataStream.Length == 0)
-                {
-                  _logger.Log($"No data found after IEND for {file}, skipping");
-                  return;
-                }
+                var didCompress = await _assetService.CompressImageAsync(repository.Configuration, file);
                 break;
               case ".unity3d":
                 if (repository.Configuration.RandomizeCab)
                 {
                   _logger.Log("Randomizing CAB", LogReason.Debug);
-                  var didRandomize = await _assetService.RandomizeCabAsync(repository.Configuration, file);
+                  var randomizeCabDuration = await TimingUtilities.TimeAsync(async () =>
+                  {
+                    var didRandomize = await _assetService.RandomizeCabAsync(repository.Configuration, file);
+                  });
+                  _logger.Log($"CAB randomization of {file} took {randomizeCabDuration.TotalMilliseconds}ms", LogReason.Debug);
                 }
                 if (repository.Configuration.SkipCompression)
                 {
@@ -152,7 +151,12 @@ namespace ZipmodAssistant.Api.Services
                 else
                 {
                   _logger.Log("Compressing unity3d file", LogReason.Debug);
-                  var didCompress = await _assetService.CompressUnityResxAsync(repository.Configuration, file);
+                  var compressionDuration = await TimingUtilities.TimeAsync(async () =>
+                  {
+                    var didCompress = await _assetService.CompressUnityResxAsync(repository.Configuration, file);
+                    // TODO: do something with this
+                  });
+                  _logger.Log($"Compression of {file} took {compressionDuration.TotalMilliseconds}ms", LogReason.Debug);
                 }
                 break;
               case ".csv":
@@ -166,6 +170,7 @@ namespace ZipmodAssistant.Api.Services
           if (!repository.Configuration.SkipCleanup)
           {
             Directory.Delete(zipmod.WorkingDirectory);
+            _logger.Log($"Cleaned {repository.Configuration.CacheDirectory}");
           }
         }
         catch (Exception ex)

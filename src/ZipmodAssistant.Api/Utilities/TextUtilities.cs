@@ -38,10 +38,10 @@ namespace ZipmodAssistant.Api.Utilities
       return false;
     }
 
-    public static string ResolveFilenameFromManifest(IManifest config)
+    public static string ResolveFilenameFromManifest(IManifest manifest)
     {
-      var nameToUse = config.Name ?? config.Guid;
-      return $"[{config.Author}] {nameToUse} v{config.Version}.zipmod";
+      var nameToUse = manifest.Name ?? manifest.Guid;
+      return $"[{manifest.Author}] {nameToUse} {(manifest.Version.StartsWith('v') ? "" : 'v')}{manifest.Version}.zipmod";
     }
   }
 }

@@ -100,7 +100,7 @@ namespace ZipmodAssistant.Api.Services
 
     void UpdateManifests(IZipmod zipmod)
     {
-      File.Copy(GetZipmodFile(zipmod, "manifest.xml"), GetZipmodFile(zipmod, "manifest-orig.xml"));
+      File.Copy(GetZipmodFile(zipmod, "manifest.xml"), GetZipmodFile(zipmod, "manifest-orig.xml"), true);
       File.WriteAllText(GetZipmodFile(zipmod, "manifest.xml"), $"""
         <!-- Generated with ZipmodAssistant -->
         {zipmod.Manifest}
@@ -120,6 +120,29 @@ namespace ZipmodAssistant.Api.Services
         System.IO.Compression.ZipFile.ExtractToDirectory(zipmod.FileInfo.FullName, zipmod.WorkingDirectory, true);
         _logger.Log($"Extracted zipmod to temp directory {zipmod.WorkingDirectory}");
       }
+    }
+
+    ZipmodType GetZipmodType(IZipmod zipmod)
+    {
+      if (Directory.Exists(GetZipmodFile(zipmod, "abdata\\list\\characustom")))
+      {
+        return ZipmodType.Game;
+      }
+      if (Directory.Exists(GetZipmodFile(zipmod, "abdata\\studio\\info")))
+      {
+        return ZipmodType.Studio;
+      }
+      if (Directory.Exists(GetZipmodFile(zipmod, "abdata\\map\\list\\mapinfo")))
+      {
+        return ZipmodType.MapGame;
+      }
+      if (
+        Directory.Exists(GetZipmodFile(zipmod, "abdata\\studio")) &&
+        Directory.GetFiles(GetZipmodFile(zipmod, "abdata\\studio")).Any(f => new FileInfo(f).Name.StartsWith("Map_")))
+      {
+        return ZipmodType.MapStudio;
+      }
+      return ZipmodType.Unknown;
     }
 
     public async Task ProcessRepositoryAsync(IBuildRepository repository)
@@ -181,10 +204,16 @@ namespace ZipmodAssistant.Api.Services
                 break;
             }
           });
-          var outputFilename = Path.Join(
-              repository.Configuration.OutputDirectory,
+          var zipmodType = GetZipmodType(zipmod);
+          var outputDirectory = Path.Join(
+            repository.Configuration.OutputDirectory,
               "treated",
+              zipmodType.ToString()
+            );
+          var outputFilename = Path.Join(
+              outputDirectory,
               TextUtilities.ResolveFilenameFromManifest(zipmod.Manifest));
+          Directory.CreateDirectory(outputDirectory);
           if (File.Exists(outputFilename))
           {
             File.Delete(outputFilename);

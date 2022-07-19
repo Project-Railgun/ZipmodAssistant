@@ -86,13 +86,7 @@ namespace ZipmodAssistant.App.Views.Pages
         var repository = await _repositoryService.GetRepositoryFromDirectoryAsync(ViewModel);
         ViewModel.BuildProgress = 20;
         await _repositoryService.ProcessRepositoryAsync(repository);
-        ViewModel.BuildProgress = 50;
-        do
-        {
-          ViewModel.BuildProgress += 5;
-          await Task.Delay(200);
-        }
-        while (ViewModel.BuildProgress < 100);
+        ViewModel.BuildProgress = 80;
       }
       catch (DirectoryNotFoundException ex)
       {
@@ -102,8 +96,10 @@ namespace ZipmodAssistant.App.Views.Pages
       {
         _taskBarService.SetState(_navigationWindow as Window, TaskBarProgressState.None);
         var report = await _sessionService.GenerateReportAsync();
+        ViewModel.BuildProgress = 90;
         var reportFilename = $"report-{DateTime.Now:MM_dd_yyyy__HH_mm}.html";
         await File.WriteAllTextAsync(reportFilename, report);
+        ViewModel.BuildProgress = 100;
         Process.Start(@"cmd.exe", @"/c " + reportFilename);
         _logger.Log($"Report generated at {reportFilename}");
         ViewModel.IsBuilding = false;

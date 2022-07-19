@@ -15,6 +15,8 @@ namespace ZipmodAssistant.Api.Models
   [XmlRoot("manifest")]
   public class Manifest : IManifest
   {
+    private string _version = string.Empty;
+
     [XmlIgnore]
     public string FileLocation { get; set; } = string.Empty;
     [XmlIgnore]
@@ -26,7 +28,28 @@ namespace ZipmodAssistant.Api.Models
     [XmlElement("name")]
     public string Name { get; set; } = string.Empty;
     [XmlElement("version")]
-    public string Version { get; set; } = string.Empty;
+    public string Version
+    {
+      get => _version;
+      set
+      {
+        var version = new int[] { 0, 0, 0 };
+        var versionSegments = value.Split('.');
+        for (var i = 0; i < versionSegments.Length; i++)
+        {
+          var versionSegment = versionSegments[i];
+          if (int.TryParse(versionSegment.StartsWith('v') ? versionSegment[1..] : versionSegment, out var segint))
+          {
+            version[i] = segint;
+          }
+          else
+          {
+            throw new FormatException($"Manifest has invalid version: {value}");
+          }
+        }
+        _version = string.Join(".", version);
+      }
+    }
     [XmlElement("author")]
     public string Author { get; set; } = string.Empty;
     [XmlElement("description")]

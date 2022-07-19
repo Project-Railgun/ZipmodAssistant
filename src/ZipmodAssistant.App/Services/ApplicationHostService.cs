@@ -49,6 +49,10 @@ namespace ZipmodAssistant.App.Services
     public async Task StartAsync(CancellationToken cancelToken)
     {
       var startTime = DateTime.Now;
+      if (!Directory.Exists("logs"))
+      {
+        Directory.CreateDirectory("logs");
+      }
       _logFile = File.CreateText(Path.Join(
         AppDomain.CurrentDomain.BaseDirectory,
         $"log_{startTime.ToFileTime()}.txt"));

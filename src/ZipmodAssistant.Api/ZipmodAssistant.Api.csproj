@@ -20,18 +20,28 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aspose.Imaging" Version="22.7.0" />
     <PackageReference Include="AssetsTools.NET" Version="2.0.12" />
+    <PackageReference Include="Handlebars.Net" Version="2.1.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="6.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.5" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
     <PackageReference Include="Semver" Version="2.1.0" />
+    <PackageReference Include="SharpCompress" Version="0.32.1" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ZipmodAssistant.Shared\ZipmodAssistant.Shared.csproj" />
     <ProjectReference Include="..\ZipmodAssistant.Tarot\ZipmodAssistant.Tarot.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="report.hjs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -211,7 +211,7 @@ namespace ZipmodAssistant.Tarot.Models
         {
           reader.BaseStream.Seek(extendedInfo.Position, SeekOrigin.Current);
           var extendedData = reader.ReadBytes((int)extendedInfo.Size);
-          AdditionalData = MessagePackSerializer.Deserialize<Dictionary<string, AdditionalData>>(extendedData);
+          // AdditionalData = MessagePackSerializer.Deserialize<Dictionary<string, AdditionalData>>(extendedData);
         }
       });
     }

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using ZipmodAssistant.Api.Enums;
@@ -149,6 +150,23 @@ namespace ZipmodAssistant.App.ViewModels
     public HomeViewModel()
     {
 
+    }
+
+    public static HomeViewModel ReadFromFile(string filename)
+    {
+      if (File.Exists(filename))
+      {
+        try
+        {
+          var fileContents = File.ReadAllBytes(filename);
+          return JsonSerializer.Deserialize<HomeViewModel>(fileContents) ?? new HomeViewModel();
+        }
+        catch (JsonException ex)
+        {
+          Console.WriteLine($"Failed to deserialize config.json: {ex}");
+        }
+      }
+      return new HomeViewModel();
     }
 
     public void ValidateDirectoryConfiguration()

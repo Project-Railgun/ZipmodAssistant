@@ -10,7 +10,10 @@ namespace ZipmodAssistant.Tarot.Utilities
 {
   public static class CardUtilities
   {
-    private static readonly byte[] _endChunk = { 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 };
+    private static readonly byte[] _pngSignature = new byte[]
+    {
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+    };
 
     private class EmptyStream : Stream
     {
@@ -50,19 +53,66 @@ namespace ZipmodAssistant.Tarot.Utilities
       return new BinaryReader(dataStream);
     }
 
+    public static async Task<bool> ContainsDataAfterIEndAsync(string filename)
+    {
+      using var inputStream = File.OpenRead(filename);
+      bool isReadingChunks;
+      // contains the image information
+      var imageInfoBuffer = new byte[8];
+      await inputStream.ReadAsync(imageInfoBuffer);
+      for (var i = 0; i < _pngSignature.Length; i++)
+      {
+        if (imageInfoBuffer[i] != _pngSignature[i])
+        {
+          throw new BadImageFormatException("PNG file header invalid, ensure it's not corrupted");
+        }
+      }
+      do
+      {
+        var lengthInfoBuffer = new byte[4];
+        await inputStream.ReadAsync(lengthInfoBuffer);
+        var length = BinaryPrimitives.ReadInt32BigEndian(lengthInfoBuffer);
+        // length should be 8196, but there might be cases where it's not
+
+        var chunkDataInfoBuffer = new byte[4];
+        await inputStream.ReadAsync(chunkDataInfoBuffer);
+
+        var chunkDataBuffer = new byte[length];
+        await inputStream.ReadAsync(chunkDataBuffer);
+
+        var crcBuffer = new byte[4];
+        await inputStream.ReadAsync(crcBuffer);
+
+        // at this point, all data has been written to the image stream. Now we only check if we can end
+        // and start on the data stream
+
+        isReadingChunks = length > 0;
+      }
+      while (isReadingChunks);
+      return inputStream.Position == inputStream.Length - 1;
+    }
+
     public static async Task ReadDataToBuffersAsync(Stream inputStream, [NotNull]Stream imageStream, [NotNull]Stream dataStream)
     {
       bool isReadingChunks;
       // contains the image information
       var imageInfoBuffer = new byte[8];
       await inputStream.ReadAsync(imageInfoBuffer);
+      for (var i = 0; i < _pngSignature.Length; i++)
+      {
+        if (imageInfoBuffer[i] != _pngSignature[i])
+        {
+          throw new BadImageFormatException("PNG file header invalid, ensure it's not corrupted");
+        }
+      }
       await imageStream.WriteAsync(imageInfoBuffer);
       do
       {
         var lengthInfoBuffer = new byte[4];
         await inputStream.ReadAsync(lengthInfoBuffer);
         var length = BinaryPrimitives.ReadInt32BigEndian(lengthInfoBuffer);
-        // length should be 1024, but there might be cases where it's not
+        await imageStream.WriteAsync(lengthInfoBuffer);
+        // length should be 8196, but there might be cases where it's not
 
         var chunkDataInfoBuffer = new byte[4];
         await inputStream.ReadAsync(chunkDataInfoBuffer);
@@ -78,19 +128,14 @@ namespace ZipmodAssistant.Tarot.Utilities
 
         // at this point, all data has been written to the image stream. Now we only check if we can end
         // and start on the data stream
-        int i;
-        for (i = _endChunk.Length - 1; i >= 0; i--)
-        {
-          if (chunkDataBuffer[^i] != _endChunk[i])
-          {
-            break;
-          }
-        }
-        isReadingChunks = i > 0;
+
+        isReadingChunks = length > 0;
       }
       while (isReadingChunks);
 
       await inputStream.CopyToAsync(dataStream);
+      imageStream.Seek(0, SeekOrigin.Begin);
+      dataStream.Seek(0, SeekOrigin.Begin);
     }
 
     public static void ReadDataToBuffers(Stream inputStream, [NotNull]Stream imageStream, [NotNull]Stream dataStream)
@@ -118,15 +163,7 @@ namespace ZipmodAssistant.Tarot.Utilities
         inputStream.Read(crcBuffer);
         imageStream.Write(crcBuffer);
 
-        int i;
-        for (i = _endChunk.Length - 1; i >= 0; i--)
-        {
-          if (chunkDataBuffer[^i] != _endChunk[i])
-          {
-            break;
-          }
-        }
-        isReadingChunks = i > 0;
+        isReadingChunks = length > 0;
       }
       while (isReadingChunks);
 

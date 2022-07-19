@@ -11,9 +11,7 @@ namespace ZipmodAssistant.Tarot.Extensions
 {
   public static class ServiceExtensions
   {
-    public static void AddTarot(this IServiceCollection services)
-    {
+    public static IServiceCollection AddTarot(this IServiceCollection services) =>
       services.AddScoped<ICardProvider, CardProvider>();
-    }
   }
 }

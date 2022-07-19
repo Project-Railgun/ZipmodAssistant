@@ -2,14 +2,12 @@
 
 namespace ZipmodAssistant.Tarot.Interfaces.Models
 {
-  public interface ICard
+  public interface ICard : IDisposable
   {
     string Name { get; }
     FileInfo FileLocation { get; }
     CharacterSex Sex { get; }
     string Personality { get; }
-    Stream ImageStream { get; set; }
-    Stream DataStream { get; set; }
 
     Task LoadAsync(BinaryReader reader);
   }

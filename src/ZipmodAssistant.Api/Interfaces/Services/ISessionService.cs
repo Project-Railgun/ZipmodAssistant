@@ -12,13 +12,13 @@ namespace ZipmodAssistant.Api.Interfaces.Services
     /// </summary>
     /// <param name="result"></param>
     /// <returns></returns>
-    Task CommitResultAsync(IProcessResult result);
+    Task CommitResultAsync(ISessionResult result);
     /// <summary>
     ///   Stores a collection of results in local data to build a report from
     /// </summary>
     /// <param name="results"></param>
     /// <returns></returns>
-    Task CommitResultAsync(IEnumerable<IProcessResult> results);
+    Task CommitResultAsync(IEnumerable<ISessionResult> results);
     /// <summary>
     ///   Generates the session report as an HTML file, clearing local data after complete
     /// </summary>

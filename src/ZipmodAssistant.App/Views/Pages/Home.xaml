@@ -8,12 +8,10 @@
       xmlns:controls="clr-namespace:ZipmodAssistant.App.Controls"
       xmlns:viewModels="clr-namespace:ZipmodAssistant.App.ViewModels"
       xmlns:converters="clr-namespace:ZipmodAssistant.App.Converters"
-      xmlns:extensions="clr-namespace:ZipmodAssistant.App.Extensions"
       mc:Ignorable="d"
       d:DesignHeight="450" d:DesignWidth="800"
       Style="{StaticResource UiPageScrollable}"
       d:DataContext="{d:DesignInstance viewModels:HomeViewModel}"
-      DataContext="{extensions:DependencyInjectionSource Type=viewModels:HomeViewModel}"
       Title="Home">
   <Page.Resources>
     <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibility" True="Visible" False="Collapsed" />

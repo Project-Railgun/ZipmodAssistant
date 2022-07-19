@@ -28,8 +28,8 @@ namespace ZipmodAssistant.Tarot.Models
     public FileInfo FileLocation { get; protected set; }
     public virtual CharacterSex Sex { get; protected set; } = CharacterSex.Unknown;
     public virtual string Personality { get; protected set; } = string.Empty;
-    public virtual Stream ImageStream { get; set; }
-    public virtual Stream DataStream { get; set; }
+
+    protected virtual bool IsDisposed { get; set; }
 
     protected BaseCard(FileInfo fileLocation)
     {
@@ -38,5 +38,10 @@ namespace ZipmodAssistant.Tarot.Models
     }
 
     public abstract Task LoadAsync(BinaryReader reader);
+
+    public virtual void Dispose()
+    {
+      GC.SuppressFinalize(this);
+    }
   }
 }

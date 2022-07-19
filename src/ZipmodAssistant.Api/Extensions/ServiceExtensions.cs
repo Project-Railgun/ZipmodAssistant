@@ -6,14 +6,11 @@ namespace ZipmodAssistant.Api.Extensions
 {
   public static class ServiceExtensions
   {
-    public static void AddZipmodAssistant(this IServiceCollection provider)
-    {
+    public static IServiceCollection AddZipmodAssistant(this IServiceCollection provider) =>
       provider
         .AddScoped<ILoggerService, LoggerService>()
-        .AddScoped<IOutputService, OutputService>()
         .AddScoped<IRepositoryService, RepositoryService>()
-        .AddScoped<ISessionService, SessionService>()
+        .AddSingleton<ISessionService, SessionService>()
         .AddScoped<IAssetService, AssetService>();
-    }
   }
 }

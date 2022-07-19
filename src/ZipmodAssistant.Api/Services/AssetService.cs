@@ -1,33 +1,63 @@
-﻿using AssetsTools.NET;
+﻿using Aspose.Imaging;
+using Aspose.Imaging.ImageOptions;
+using AssetsTools.NET;
 using AssetsTools.NET.Extra;
+using Microsoft.Extensions.FileSystemGlobbing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ZipmodAssistant.Api.Interfaces.Models;
 using ZipmodAssistant.Api.Interfaces.Services;
+using ZipmodAssistant.Tarot.Interfaces.Providers;
+using ZipmodAssistant.Tarot.Utilities;
 
 namespace ZipmodAssistant.Api.Services
 {
   public class AssetService : IAssetService
   {
     private readonly ILoggerService _logger;
-    private readonly IOutputService _outputService;
+    private readonly ICardProvider _cardProvider;
 
-    public AssetService(ILoggerService logger, IOutputService outputService)
+    private static readonly Regex _mapResourcePath = new(@"abdata(\/|\\)map(\/|\\)scene(\/|\\).+\.unity3d$");
+
+    public AssetService(ILoggerService logger, ICardProvider cardProvider)
     {
       _logger = logger;
-      _outputService = outputService;
+      _cardProvider = cardProvider;
     }
 
     public async Task<bool> CompressImageAsync(IBuildConfiguration buildConfig, string filename)
     {
-      return false;
+      if (filename.EndsWith(".compressed.png"))
+      {
+        return false;
+      }
+      try
+      {
+        if (!await CardUtilities.ContainsDataAfterIEndAsync(filename))
+        {
+          // compress
+          return true;
+        }
+        return false;
+      }
+      catch (Exception ex)
+      {
+        _logger.Log(ex);
+        return false;
+      }
     }
 
     public Task<bool> CompressUnityResxAsync(IBuildConfiguration buildConfig, string filename) => Task.Run(() =>
     {
+      // I'd like to do a globbing pattern
+      if (_mapResourcePath.IsMatch(filename))
+      {
+        return false;
+      }
       var assetsManager = new AssetsManager();
       var bundle = assetsManager.LoadBundleFile(filename);
       var tempFileStream = File.Create($"{filename}.tmp");

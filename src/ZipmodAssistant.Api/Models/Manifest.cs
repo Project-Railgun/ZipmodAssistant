@@ -36,8 +36,6 @@ namespace ZipmodAssistant.Api.Models
     [XmlElement("game")]
     public string[] Games { get; set; } = Array.Empty<string>();
 
-    private string _rawContent = string.Empty;
-
     public static Task<Manifest> ReadFromFileAsync(string filename) => ReadFromStreamAsync(File.OpenRead(filename));
 
     public static async Task<Manifest> ReadFromStreamAsync(Stream _stream)
@@ -52,8 +50,6 @@ namespace ZipmodAssistant.Api.Models
         var streamReader = new StreamReader(stream);
         
         streamReader.BaseStream.Seek(0, SeekOrigin.Begin);
-        manifest._rawContent = await streamReader.ReadToEndAsync();
-        streamReader.BaseStream.Seek(0, SeekOrigin.Begin);
         using var md5 = MD5.Create();
         var streamHash = await md5.ComputeHashAsync(streamReader.BaseStream);
         manifest.Hash = Convert.ToBase64String(streamHash);
@@ -64,13 +60,15 @@ namespace ZipmodAssistant.Api.Models
 
     public override string ToString()
     {
-      if (!string.IsNullOrEmpty(_rawContent))
+      var xmlWriterSettings = new XmlWriterSettings
       {
-        return _rawContent;
-      }
+        Indent = true,
+      };
       var serializer = new XmlSerializer(typeof(Manifest));
-      using var ms = new MemoryStream();
-      serializer.Serialize(ms, this);
+
+      var ms = new MemoryStream();
+      using var xmlWriter = XmlWriter.Create(ms, xmlWriterSettings);
+      serializer.Serialize(xmlWriter, this);
       return Encoding.UTF8.GetString(ms.GetBuffer());
     }
   }

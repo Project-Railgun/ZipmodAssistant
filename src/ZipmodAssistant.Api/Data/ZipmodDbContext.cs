@@ -17,12 +17,5 @@ namespace ZipmodAssistant.Api.Data
     {
       Database.EnsureCreated();
     }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-      modelBuilder.Entity<SessionResultEntry>()
-        .Property(e => e.CreatedAt)
-        .HasDefaultValueSql("getdate()");
-    }
   }
 }

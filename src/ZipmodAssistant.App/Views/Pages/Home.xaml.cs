@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -15,6 +16,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Wpf.Ui.Mvvm.Contracts;
+using Wpf.Ui.TaskBar;
 using ZipmodAssistant.Api.Enums;
 using ZipmodAssistant.Api.Interfaces.Services;
 using ZipmodAssistant.App.Extensions;
@@ -30,15 +33,26 @@ namespace ZipmodAssistant.App.Views.Pages
     private readonly ILoggerService _logger;
     private readonly IRepositoryService _repositoryService;
     private readonly ISessionService _sessionService;
+    private readonly INavigationWindow _navigationWindow;
+    private readonly ITaskBarService _taskBarService;
 
     private HomeViewModel ViewModel => (HomeViewModel)DataContext;
 
-    public Home()
+    public Home(
+      INavigationWindow navigationWindow,
+      HomeViewModel homeViewModel,
+      IRepositoryService repositoryService,
+      ILoggerService loggerService,
+      ISessionService sessionService,
+      ITaskBarService taskBarService)
     {
+      _navigationWindow = navigationWindow;
+      _logger = loggerService;
+      _repositoryService = repositoryService;
+      _sessionService = sessionService;
+      _taskBarService = taskBarService;
+      DataContext = homeViewModel;
       InitializeComponent();
-      _logger = this.GetService<ILoggerService>();
-      _repositoryService = this.GetService<IRepositoryService>();
-      _sessionService = this.GetService<ISessionService>();
 
       _logger.MessageLogged += (sender, message) => Dispatcher.Invoke(() =>
       {
@@ -67,6 +81,7 @@ namespace ZipmodAssistant.App.Views.Pages
       ViewModel.BuildProgress = 0;
       try
       {
+        _taskBarService.SetState(_navigationWindow as Window, TaskBarProgressState.Indeterminate);
         ViewModel.ValidateDirectoryConfiguration();
         var repository = await _repositoryService.GetRepositoryFromDirectoryAsync(ViewModel);
         ViewModel.BuildProgress = 20;
@@ -85,7 +100,12 @@ namespace ZipmodAssistant.App.Views.Pages
       }
       finally
       {
-        // var report = await _sessionService.GenerateReportAsync();
+        _taskBarService.SetState(_navigationWindow as Window, TaskBarProgressState.None);
+        var report = await _sessionService.GenerateReportAsync();
+        var reportFilename = $"report-{DateTime.Now:MM_dd_yyyy__HH_mm}.html";
+        await File.WriteAllTextAsync(reportFilename, report);
+        Process.Start(@"cmd.exe", @"/c " + reportFilename);
+        _logger.Log($"Report generated at {reportFilename}");
         ViewModel.IsBuilding = false;
         if (!ViewModel.SkipCleanup)
         {

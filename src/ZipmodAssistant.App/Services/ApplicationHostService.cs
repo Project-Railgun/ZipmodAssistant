@@ -55,6 +55,7 @@ namespace ZipmodAssistant.App.Services
       }
       _logFile = File.CreateText(Path.Join(
         AppDomain.CurrentDomain.BaseDirectory,
+        "logs",
         $"log_{startTime.ToFileTime()}.txt"));
       _logger.MessageLogged += (sender, message) =>
       {

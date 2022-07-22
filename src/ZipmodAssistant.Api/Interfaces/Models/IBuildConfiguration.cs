@@ -1,4 +1,6 @@
-﻿namespace ZipmodAssistant.Api.Interfaces.Models
+﻿using ZipmodAssistant.Shared.Enums;
+
+namespace ZipmodAssistant.Api.Interfaces.Models
 {
   /// <summary>
   ///   Declares a build configuration for a single execution
@@ -37,5 +39,6 @@
     ///   Whether or not to skip known mods that exist in the output directory/db
     /// </summary>
     bool SkipKnownMods { get; }
+    IEnumerable<TargetGame> Games { get; }
   }
 }

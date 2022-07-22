@@ -98,9 +98,13 @@ namespace ZipmodAssistant.Api.Services
 
     static string GetZipmodFile(IZipmod zipmod, string filename) => Path.Join(zipmod.WorkingDirectory, filename);
 
-    void UpdateManifests(IZipmod zipmod)
+    void UpdateManifests(IZipmod zipmod, IBuildConfiguration buildConfiguration)
     {
       File.Copy(GetZipmodFile(zipmod, "manifest.xml"), GetZipmodFile(zipmod, "manifest-orig.xml"), true);
+      if (buildConfiguration.Games.Count() > 0)
+      {
+        zipmod.Manifest.Games = buildConfiguration.Games.Select(g => g.ToString()).ToArray();
+      }
       File.WriteAllText(GetZipmodFile(zipmod, "manifest.xml"), $"""
         <!-- Generated with ZipmodAssistant -->
         {zipmod.Manifest}
@@ -154,7 +158,7 @@ namespace ZipmodAssistant.Api.Services
         try
         {
           MoveZipmodToWorkingDirectory(zipmod);
-          UpdateManifests(zipmod);
+          UpdateManifests(zipmod, repository.Configuration);
           await Parallel.ForEachAsync(Directory.EnumerateFiles(zipmod.WorkingDirectory, "*.*", SearchOption.AllDirectories), async (file, cancelToken) =>
           {
             var fileInfo = new FileInfo(file);

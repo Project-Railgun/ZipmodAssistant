@@ -18,9 +18,9 @@ namespace ZipmodAssistant.App.Views.Pages
   /// <summary>
   /// Interaction logic for History.xaml
   /// </summary>
-  public partial class History : Page
+  public partial class HistoryPage : Page
   {
-    public History()
+    public HistoryPage()
     {
       InitializeComponent();
     }

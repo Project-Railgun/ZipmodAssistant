@@ -15,8 +15,10 @@ using ZipmodAssistant.Api.Extensions;
 using ZipmodAssistant.Api.Interfaces.Models;
 using ZipmodAssistant.Api.Interfaces.Services;
 using ZipmodAssistant.Api.Services;
+using ZipmodAssistant.App.Commands;
 using ZipmodAssistant.App.Extensions;
 using ZipmodAssistant.App.Interfaces.Models;
+using ZipmodAssistant.App.Interfaces.Services;
 using ZipmodAssistant.App.Models;
 using ZipmodAssistant.App.Services;
 using ZipmodAssistant.App.ViewModels;
@@ -83,14 +85,18 @@ namespace ZipmodAssistant.App
         .AddSingleton<IThemeService, ThemeService>()
         .AddSingleton<INavigationService, NavigationService>()
         .AddSingleton<ITaskBarService, TaskBarService>()
+        .AddSingleton<IProjectService, ProjectService>()
         .AddSingleton<INavigationWindow, Container>()
         // configure view models
-        .AddSingleton<IBuildConfiguration, HomeViewModel>()
-        .AddSingleton(m => HomeViewModel.ReadFromFile("config.json"))
+        .AddSingleton<IBuildConfiguration, ProjectViewModel>()
+        .AddSingleton<ProjectViewModel>()
+        .AddScoped<HomeViewModel>()
+        .AddSingleton<ContainerViewModel>()
         // configure views
-        .AddScoped<History>()
-        .AddScoped<Home>()
-        .AddScoped<Settings>()
+        .AddSingleton<HomePage>()
+        .AddSingleton<HistoryPage>()
+        .AddSingleton<ProjectPage>()
+        .AddSingleton<SettingsPage>()
         .AddSingleton<IAppConfiguration, AppConfiguration>()
         .Configure<AppConfiguration>(context.Configuration.GetSection(nameof(AppConfiguration)));
     }

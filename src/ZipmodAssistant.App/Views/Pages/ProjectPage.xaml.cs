@@ -21,6 +21,7 @@ using Wpf.Ui.TaskBar;
 using ZipmodAssistant.Api.Enums;
 using ZipmodAssistant.Api.Interfaces.Services;
 using ZipmodAssistant.App.Extensions;
+using ZipmodAssistant.App.Interfaces.Services;
 using ZipmodAssistant.App.ViewModels;
 
 namespace ZipmodAssistant.App.Views.Pages
@@ -28,7 +29,7 @@ namespace ZipmodAssistant.App.Views.Pages
   /// <summary>
   /// Interaction logic for Home.xaml
   /// </summary>
-  public partial class Home : Page
+  public partial class ProjectPage : Page
   {
     private readonly ILoggerService _logger;
     private readonly IRepositoryService _repositoryService;
@@ -36,22 +37,24 @@ namespace ZipmodAssistant.App.Views.Pages
     private readonly INavigationWindow _navigationWindow;
     private readonly ITaskBarService _taskBarService;
 
-    private HomeViewModel ViewModel => (HomeViewModel)DataContext;
+    ProjectViewModel ViewModel => (ProjectViewModel)DataContext;
+    bool _hasUnsavedChanges = false;
 
-    public Home(
+    public ProjectPage(
       INavigationWindow navigationWindow,
-      HomeViewModel homeViewModel,
       IRepositoryService repositoryService,
       ILoggerService loggerService,
       ISessionService sessionService,
-      ITaskBarService taskBarService)
+      ITaskBarService taskBarService,
+      IProjectService projectService,
+      ProjectViewModel viewModel)
     {
       _navigationWindow = navigationWindow;
       _logger = loggerService;
       _repositoryService = repositoryService;
       _sessionService = sessionService;
       _taskBarService = taskBarService;
-      DataContext = homeViewModel;
+      DataContext = viewModel;
       InitializeComponent();
 
       _logger.MessageLogged += (sender, message) => Dispatcher.Invoke(() =>
@@ -61,21 +64,25 @@ namespace ZipmodAssistant.App.Views.Pages
       });
       _logger.Log("Initiated logging");
       _logger.Log($"{Assembly.GetEntryAssembly().GetName().Name} v{Assembly.GetEntryAssembly().GetName().Version}");
-      ViewModel.PropertyChanged += (sender, e) =>
-      {
-        var jsonData = JsonSerializer.SerializeToUtf8Bytes(ViewModel);
-        using var homeViewModelFile = File.Create("config.json");
-        homeViewModelFile.Write(jsonData);
-      };
     }
 
-    private async void CopyAllClicked(object sender, RoutedEventArgs e)
+    void RemoveGameTagsClicked(object sender, RoutedEventArgs e)
+    {
+      ViewModel.ResetGames();
+    }
+
+    async void CopyAllClicked(object sender, RoutedEventArgs e)
     {
       Clipboard.SetText(string.Join(Environment.NewLine, ViewModel.LogMessages));
       await ClipboardNotification.ShowAsync("Notification", "Copied to clipboard");
     }
 
-    private async void StartClicked(object sender, RoutedEventArgs e)
+    async void SetProjectDirectoryClicked(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    async void StartClicked(object sender, RoutedEventArgs e)
     {
       ViewModel.IsBuilding = true;
       ViewModel.BuildProgress = 0;

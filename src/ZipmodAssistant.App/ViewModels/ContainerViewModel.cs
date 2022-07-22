@@ -5,34 +5,36 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using ZipmodAssistant.App.Interfaces.Services;
 
 namespace ZipmodAssistant.App.ViewModels
 {
-  public class HomeViewModel : INotifyPropertyChanged
+  public class ContainerViewModel : INotifyPropertyChanged
   {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private bool _isProjectNameInputVisible = false;
-    private string _projectName = string.Empty;
+    private readonly IProjectService _projectService;
+    private bool _canSave = false;
 
-    public bool IsProjectNameInputVisible
+    public bool CanSave
     {
-      get => _isProjectNameInputVisible;
+      get => _canSave;
       set
       {
-        _isProjectNameInputVisible = value;
+        _canSave = value;
         OnPropertyChanged();
       }
     }
 
-    public string ProjectName
+    public ContainerViewModel(IProjectService projectService)
     {
-      get => _projectName;
-      set
-      {
-        _projectName = value;
-        OnPropertyChanged();
-      }
+      _projectService = projectService;
+      _canSave = projectService.GetCurrentProject() != null;
+    }
+
+    public void Update()
+    {
+      _canSave = _projectService.GetCurrentProject() != null;
     }
 
     public void OnPropertyChanged([CallerMemberName]string name = "") =>

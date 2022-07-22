@@ -1,23 +1,23 @@
-﻿<Page x:Name="HomePage"
-      x:Class="ZipmodAssistant.App.Views.Pages.Home"
+﻿<Page x:Class="ZipmodAssistant.App.Views.Pages.ProjectPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
       xmlns:controls="clr-namespace:ZipmodAssistant.App.Controls"
       xmlns:viewModels="clr-namespace:ZipmodAssistant.App.ViewModels"
       xmlns:converters="clr-namespace:ZipmodAssistant.App.Converters"
+      xmlns:sharedEnums="clr-namespace:ZipmodAssistant.Shared.Enums;assembly=ZipmodAssistant.Shared"
       mc:Ignorable="d"
       d:DesignHeight="450" d:DesignWidth="800"
       Style="{StaticResource UiPageScrollable}"
-      d:DataContext="{d:DesignInstance viewModels:HomeViewModel}"
-      Title="Home">
+      d:DataContext="{d:DesignInstance viewModels:ProjectViewModel}"
+      Title="Project">
   <Page.Resources>
     <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibility" True="Visible" False="Collapsed" />
     <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityInverted" True="Collapsed" False="Visible" />
   </Page.Resources>
-  <Grid>
+  <Grid Margin="64,0,0,0">
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="Auto" />
       <ColumnDefinition Width="64" />
@@ -25,21 +25,25 @@
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
       <RowDefinition Height="16" />
-      <RowDefinition Height="248" />
+      <RowDefinition Height="*" />
     </Grid.RowDefinitions>
-    <StackPanel HorizontalAlignment="Left" Background="Transparent" Grid.Column="0">
+    <wpfui:CardAction Icon="Alert24" Grid.ColumnSpan="3" Margin="0,0,0,16" Visibility="{Binding IsPersisted, Converter={StaticResource BooleanToVisibilityInverted}}" Background="{StaticResource SystemFillColorAttentionBackgroundBrush}" Cursor="Hand" Click="SetProjectDirectoryClicked">
+      This project is not saved. Click here to create one.
+    </wpfui:CardAction>
+    <StackPanel HorizontalAlignment="Left" Background="Transparent" Grid.Column="0" Grid.Row="1">
       <Label FontWeight="DemiBold">Input Folder</Label>
       <controls:FileInput Margin="0,8,0,16" Value="{Binding InputDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
       <Label FontWeight="DemiBold">Output Folder</Label>
       <controls:FileInput Margin="0,8,0,16" Value="{Binding OutputDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
       <Label FontWeight="DemiBold">Cache Folder</Label>
       <controls:FileInput Margin="0,8,0,16" Value="{Binding CacheDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-      <wpfui:Button Margin="0,24,0,0" Click="StartClicked" Visibility="{Binding IsBuilding, Converter={StaticResource BooleanToVisibilityInverted}}">Start</wpfui:Button>
+      <wpfui:Button Margin="0,24,0,0" Click="StartClicked" Visibility="{Binding IsBuilding, Converter={StaticResource BooleanToVisibilityInverted}}" HorizontalAlignment="Stretch">Start</wpfui:Button>
       <ProgressBar Margin="0,24,0,0" Visibility="{Binding IsBuilding, Converter={StaticResource BooleanToVisibility}}" Value="{Binding BuildProgress}" Maximum="100" />
 
     </StackPanel>
-    <StackPanel HorizontalAlignment="Left" Background="Transparent" Grid.Column="2">
+    <StackPanel HorizontalAlignment="Left" Background="Transparent" Grid.Column="2" Grid.Row="1">
       <Grid Margin="0,0,0,0">
         <Grid.RowDefinitions>
           <RowDefinition Height="32" />
@@ -68,23 +72,20 @@
           <Label FontWeight="ExtraLight">Leave all unchecked to not change</Label>
         </StackPanel>
         <StackPanel Grid.Row="4" Grid.Column="0">
-          <wpfui:ToggleSwitch Margin="0,16,0,0">KK</wpfui:ToggleSwitch>
-          <wpfui:ToggleSwitch Margin="0,16,0,0">KKS</wpfui:ToggleSwitch>
-          <wpfui:ToggleSwitch Margin="0,16,0,0">EC</wpfui:ToggleSwitch>
+          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsKk}">KK</wpfui:ToggleSwitch>
+          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsKks}">KKS</wpfui:ToggleSwitch>
+          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsEc}">EC</wpfui:ToggleSwitch>
         </StackPanel>
         <StackPanel Grid.Row="4" Grid.Column="1">
-          <wpfui:ToggleSwitch Margin="0,16,0,0">AIS</wpfui:ToggleSwitch>
-          <wpfui:ToggleSwitch Margin="0,16,0,0">HS2</wpfui:ToggleSwitch>
-          <TextBlock Margin="0,16,0,0" Cursor="Hand">
-            <TextBlock.Foreground>
-              <SolidColorBrush Color="{StaticResource SystemAccentColorLight1}"/>
-            </TextBlock.Foreground>
+          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsAis}">AIS</wpfui:ToggleSwitch>
+          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsHs2}">HS2</wpfui:ToggleSwitch>
+          <Button Margin="0,16,0,0" Cursor="Hand" Click="RemoveGameTagsClicked" Background="Transparent" BorderBrush="Transparent" Padding="0" Foreground="{StaticResource SystemAccentColorPrimaryBrush}">
             Remove all
-          </TextBlock>
+          </Button>
         </StackPanel>
       </Grid>
     </StackPanel>
-    <ScrollViewer Grid.ColumnSpan="3" Grid.Row="2" VerticalScrollBarVisibility="Visible" x:Name="LogMessageScroll" MaxWidth="820">
+    <ScrollViewer Grid.ColumnSpan="3" Grid.Row="3" VerticalScrollBarVisibility="Visible" x:Name="LogMessageScroll" MaxWidth="820">
       <Grid>
         <ItemsControl ItemsSource="{Binding LogMessages}" Padding="16" HorizontalAlignment="Stretch">
           <ItemsControl.Background>

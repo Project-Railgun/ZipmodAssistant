@@ -18,9 +18,9 @@ namespace ZipmodAssistant.App.Views.Pages
   /// <summary>
   /// Interaction logic for Settings.xaml
   /// </summary>
-  public partial class Settings : Page
+  public partial class SettingsPage : Page
   {
-    public Settings()
+    public SettingsPage()
     {
       InitializeComponent();
     }

@@ -159,7 +159,8 @@ namespace ZipmodAssistant.Api.Services
         {
           MoveZipmodToWorkingDirectory(zipmod);
           UpdateManifests(zipmod, repository.Configuration);
-          await Parallel.ForEachAsync(Directory.EnumerateFiles(zipmod.WorkingDirectory, "*.*", SearchOption.AllDirectories), async (file, cancelToken) =>
+          var zipmodFiles = Directory.EnumerateFiles(zipmod.WorkingDirectory, "*.*", SearchOption.AllDirectories);
+          await Parallel.ForEachAsync(zipmodFiles, async (file, cancelToken) =>
           {
             var fileInfo = new FileInfo(file);
             var path = file.Replace(zipmod.WorkingDirectory, string.Empty);
@@ -201,6 +202,9 @@ namespace ZipmodAssistant.Api.Services
               case ".txt":
                 await _sessionService.CommitResultAsync(new SessionResult(zipmod, file, SessionResultType.ResourceSkipped));
                 break;
+              case ".tmp":
+                // this file is being worked on, skip
+                break;
               default:
                 _logger.Log($"Invalid file, deleting", LogReason.Debug);
                 await _sessionService.CommitResultAsync(new SessionResult(zipmod, file, SessionResultType.ResourceDeleted));
@@ -228,7 +232,7 @@ namespace ZipmodAssistant.Api.Services
           await _sessionService.CommitResultAsync(new SessionResult(zipmod, outputFilename, SessionResultType.ZipmodCreated));
           if (!repository.Configuration.SkipCleanup)
           {
-            Directory.Delete(zipmod.WorkingDirectory);
+            Directory.Delete(zipmod.WorkingDirectory, true);
             _logger.Log($"Cleaned {repository.Configuration.CacheDirectory}");
           }
         }

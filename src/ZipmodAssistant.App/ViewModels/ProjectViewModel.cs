@@ -209,7 +209,7 @@ namespace ZipmodAssistant.App.ViewModels
     [JsonIgnore]
     public IEnumerable<TargetGame> Games
     {
-      get => (IEnumerable<TargetGame>)(new TargetGame?[]
+      get => new TargetGame?[]
       {
         IsKk ? TargetGame.Koikatu : null,
         IsKk ? TargetGame.KoikatsuParty : null,
@@ -218,7 +218,7 @@ namespace ZipmodAssistant.App.ViewModels
         IsEc ? TargetGame.EmotionCreators : null,
         IsAis ? TargetGame.AiSyoujyo : null,
         IsHs2 ? TargetGame.HoneySelect2 : null,
-      }.Where(g => g != null));
+      }.Where(g => g != null).Cast<TargetGame>();
     }
 
     [JsonIgnore]

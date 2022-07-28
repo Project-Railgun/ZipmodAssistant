@@ -9,9 +9,8 @@ using ZipmodAssistant.App.Interfaces.Services;
 
 namespace ZipmodAssistant.App.ViewModels
 {
-  public class ContainerViewModel : INotifyPropertyChanged
+  public class ContainerViewModel : ViewModel
   {
-    public event PropertyChangedEventHandler? PropertyChanged;
 
     private readonly IProjectService _projectService;
     private bool _canSave = false;
@@ -36,8 +35,5 @@ namespace ZipmodAssistant.App.ViewModels
     {
       _canSave = _projectService.GetCurrentProject() != null;
     }
-
-    public void OnPropertyChanged([CallerMemberName]string name = "") =>
-      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
   }
 }

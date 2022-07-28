@@ -14,7 +14,7 @@
           <ColumnDefinition Width="*" Name="FilenameInputCol" />
           <ColumnDefinition Width="Auto" Name="SelectButtonCol" />
         </Grid.ColumnDefinitions>
-        <wpfui:TextBox Grid.Column="0" Text="{Binding Value, ElementName=userControl}" VerticalAlignment="Stretch" VerticalContentAlignment="Center" />
+        <wpfui:TextBox Grid.Column="0" x:Name="ValueText" Text="{Binding Value, ElementName=userControl}" VerticalAlignment="Stretch" VerticalContentAlignment="Center" TextChanged="TextChanged" />
         <wpfui:Button Grid.Column="1" Margin="4,0,0,0" Padding="16,8" Click="BrowseButtonClicked">Browse</wpfui:Button>
       </Grid>
     </Border>

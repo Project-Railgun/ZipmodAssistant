@@ -8,10 +8,8 @@ using System.Threading.Tasks;
 
 namespace ZipmodAssistant.App.ViewModels
 {
-  public class HomeViewModel : INotifyPropertyChanged
+  public class HomeViewModel : ViewModel
   {
-    public event PropertyChangedEventHandler? PropertyChanged;
-
     private bool _isProjectNameInputVisible = false;
     private string _projectName = string.Empty;
 
@@ -34,8 +32,5 @@ namespace ZipmodAssistant.App.ViewModels
         OnPropertyChanged();
       }
     }
-
-    public void OnPropertyChanged([CallerMemberName]string name = "") =>
-      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
   }
 }

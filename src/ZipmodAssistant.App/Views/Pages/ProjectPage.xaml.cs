@@ -77,6 +77,12 @@ namespace ZipmodAssistant.App.Views.Pages
       await ClipboardNotification.ShowAsync("Notification", "Copied to clipboard");
     }
 
+    void ScrollToTopClicked(object sender, RoutedEventArgs e) => Dispatcher.Invoke(LogMessageScroll.ScrollToTop);
+
+    void ScrollToBottomClicked(object sender, RoutedEventArgs e) => Dispatcher.Invoke(LogMessageScroll.ScrollToBottom);
+
+    void ClearLogMessagesClicked(object sender, RoutedEventArgs e) => ViewModel.LogMessages.Clear();
+
     async void SetProjectDirectoryClicked(object sender, RoutedEventArgs e)
     {
 
@@ -94,6 +100,14 @@ namespace ZipmodAssistant.App.Views.Pages
         ViewModel.BuildProgress = 20;
         await _repositoryService.ProcessRepositoryAsync(repository);
         ViewModel.BuildProgress = 80;
+        _taskBarService.SetState(_navigationWindow as Window, TaskBarProgressState.None);
+        var report = await _sessionService.GenerateReportAsync();
+        ViewModel.BuildProgress = 90;
+        var reportFilename = $"report-{DateTime.Now:MM_dd_yyyy__HH_mm}.html";
+        await File.WriteAllTextAsync(reportFilename, report);
+        Process.Start(@"cmd.exe", @"/c " + reportFilename);
+        _logger.Log($"Report generated at {reportFilename}");
+        
       }
       catch (DirectoryNotFoundException ex)
       {
@@ -101,14 +115,7 @@ namespace ZipmodAssistant.App.Views.Pages
       }
       finally
       {
-        _taskBarService.SetState(_navigationWindow as Window, TaskBarProgressState.None);
-        var report = await _sessionService.GenerateReportAsync();
-        ViewModel.BuildProgress = 90;
-        var reportFilename = $"report-{DateTime.Now:MM_dd_yyyy__HH_mm}.html";
-        await File.WriteAllTextAsync(reportFilename, report);
         ViewModel.BuildProgress = 100;
-        Process.Start(@"cmd.exe", @"/c " + reportFilename);
-        _logger.Log($"Report generated at {reportFilename}");
         ViewModel.IsBuilding = false;
         if (!ViewModel.SkipCleanup)
         {

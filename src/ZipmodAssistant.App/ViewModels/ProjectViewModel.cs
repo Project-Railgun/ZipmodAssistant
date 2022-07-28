@@ -11,50 +11,36 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using ZipmodAssistant.Api.Enums;
 using ZipmodAssistant.Api.Interfaces.Models;
+using ZipmodAssistant.Api.Interfaces.Services;
 using ZipmodAssistant.App.Interfaces.Models;
 using ZipmodAssistant.App.Interfaces.Services;
+using ZipmodAssistant.App.Models;
 using ZipmodAssistant.Shared.Enums;
 
 namespace ZipmodAssistant.App.ViewModels
 {
-  public class ProjectViewModel : INotifyPropertyChanged, IProjectConfiguration
+  public class ProjectViewModel : ViewModel, IProjectConfiguration
   {
     private readonly IProjectService _projectService;
+    private readonly ILoggerService _logger;
+    private readonly IProjectConfiguration _project;
+
     private bool _hasChanges = false;
-    private string? _filename;
     private bool _isBuilding = false;
     private int _buildProgress = 0;
-    private string _inputDirectory = string.Empty;
-    private string _outputDirectory = string.Empty;
-    private string _cacheDirectory = string.Empty;
-    private bool _randomizeCab = true;
-    private bool _skipRenaming = false;
-    private bool _skipCompression = false;
-    private bool _skipCleanup = false;
-    private bool _skipKnownMods = false;
-    private bool _isKk = false;
-    private bool _isKks = false;
-    private bool _isEc = false;
-    private bool _isAis = false;
-    private bool _isHs2 = false;
 
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    [JsonIgnore]
     public string? Filename
     {
-      get => _filename;
+      get => _project.Filename;
       set
       {
-        _filename = value;
+        _project.Filename = value;
         OnPropertyChanged();
       }
     }
 
-    [JsonIgnore]
-    public bool IsPersisted => _filename != null;
+    public bool IsPersisted => Filename != null;
 
-    [JsonIgnore]
     public bool IsBuilding
     {
       get => _isBuilding;
@@ -65,7 +51,6 @@ namespace ZipmodAssistant.App.ViewModels
       }
     }
 
-    [JsonIgnore]
     public int BuildProgress
     {
       get => _buildProgress;
@@ -78,135 +63,140 @@ namespace ZipmodAssistant.App.ViewModels
 
     public string InputDirectory
     {
-      get => _inputDirectory;
+      get => _project.InputDirectory;
       set
       {
-        _inputDirectory = value;
+        _project.InputDirectory = value;
         OnPropertyChanged();
       }
     }
 
     public string OutputDirectory
     {
-      get => _outputDirectory;
+      get => _project.OutputDirectory;
       set
       {
-        _outputDirectory = value;
+        _project.OutputDirectory = value;
         OnPropertyChanged();
       }
     }
 
     public string CacheDirectory
     {
-      get => _cacheDirectory;
+      get => _project.CacheDirectory;
       set
       {
-        _cacheDirectory = value;
+        _project.CacheDirectory = value;
         OnPropertyChanged();
       }
     }
 
     public bool RandomizeCab
     {
-      get => _randomizeCab;
+      get => _project.RandomizeCab;
       set
       {
-        _randomizeCab = value;
+        _project.RandomizeCab = value;
         OnPropertyChanged();
       }
     }
 
     public bool SkipRenaming
     {
-      get => _skipRenaming;
+      get => _project.SkipRenaming;
       set
       {
-        _skipRenaming = value;
+        _project.SkipRenaming = value;
         OnPropertyChanged();
       }
     }
 
     public bool SkipCompression
     {
-      get => _skipCompression;
+      get => _project.SkipCompression;
       set
       {
-        _skipCompression = value;
+        _project.SkipCompression = value;
         OnPropertyChanged();
       }
     }
 
     public bool SkipCleanup
     {
-      get => _skipCleanup;
+      get => _project.SkipCleanup;
       set
       {
-        _skipCleanup = value;
+        _project.SkipCleanup = value;
         OnPropertyChanged();
       }
     }
 
     public bool SkipKnownMods
     {
-      get => _skipKnownMods;
+      get => _project.SkipKnownMods;
       set
       {
-        _skipKnownMods = value;
+        _project.SkipKnownMods = value;
         OnPropertyChanged();
       }
     }
 
     public bool IsKk
     {
-      get => _isKk;
+      get => _project.Games.Contains(TargetGame.Koikatu) ||
+        _project.Games.Contains(TargetGame.KoikatsuParty) ||
+        _project.Games.Contains(TargetGame.KoikatsuPartySpecialPatch);
       set
       {
-        _isKk = value;
-        OnPropertyChanged();
+        if (TryUpdateGame(
+          value,
+          TargetGame.Koikatu,
+          TargetGame.KoikatsuParty,
+          TargetGame.KoikatsuPartySpecialPatch))
+          OnPropertyChanged();
       }
     }
 
     public bool IsKks
     {
-      get => _isKks;
+      get => _project.Games.Contains(TargetGame.KoikatsuSunshine);
       set
       {
-        _isKks = value;
-        OnPropertyChanged();
+        if (TryUpdateGame(value, TargetGame.KoikatsuSunshine))
+          OnPropertyChanged();
       }
     }
 
     public bool IsEc
     {
-      get => _isEc;
+      get => _project.Games.Contains(TargetGame.EmotionCreators);
       set
       {
-        _isEc = value;
-        OnPropertyChanged();
+        if (TryUpdateGame(value, TargetGame.EmotionCreators))
+          OnPropertyChanged();
       }
     }
 
     public bool IsAis
     {
-      get => _isAis;
+      get => _project.Games.Contains(TargetGame.AiSyoujyo);
       set
       {
-        _isAis = value;
-        OnPropertyChanged();
+        if (TryUpdateGame(value, TargetGame.AiSyoujyo))
+          OnPropertyChanged();
       }
     }
 
     public bool IsHs2
     {
-      get => _isHs2;
+      get => _project.Games.Contains(TargetGame.HoneySelect2);
       set
       {
-        _isHs2 = value;
-        OnPropertyChanged();
+        if (TryUpdateGame(value, TargetGame.HoneySelect2))
+          OnPropertyChanged();
       }
     }
 
-    [JsonIgnore]
     public IEnumerable<TargetGame> Games
     {
       get => new TargetGame?[]
@@ -219,39 +209,42 @@ namespace ZipmodAssistant.App.ViewModels
         IsAis ? TargetGame.AiSyoujyo : null,
         IsHs2 ? TargetGame.HoneySelect2 : null,
       }.Where(g => g != null).Cast<TargetGame>();
+      set
+      {
+        _project.Games = value;
+        OnPropertyChanged();
+      }
     }
 
-    [JsonIgnore]
     public ObservableCollection<string> LogMessages { get; set; } = new();
 
-    public ProjectViewModel(IProjectService projectService, ContainerViewModel containerViewModel)
+    public ProjectViewModel(IProjectService projectService, ILoggerService logger)
     {
       _projectService = projectService;
-      var currentProject = projectService.GetCurrentProject();
-      if (currentProject != null)
+      _logger = logger;
+      _project = projectService.GetCurrentProject();
+      PropertyChanged += (_, _) => _hasChanges = true;
+      if (_project != null)
       {
-        _filename = currentProject.Filename;
-        _inputDirectory = currentProject.InputDirectory;
-        _outputDirectory = currentProject.OutputDirectory;
-        _cacheDirectory = currentProject.CacheDirectory;
-        _isKk = currentProject.Games.Contains(TargetGame.Koikatu) ||
-          currentProject.Games.Contains(TargetGame.KoikatsuParty) ||
-          currentProject.Games.Contains(TargetGame.KoikatsuPartySpecialPatch);
-        _isKks = currentProject.Games.Contains(TargetGame.KoikatsuSunshine);
-        _isEc = currentProject.Games.Contains(TargetGame.EmotionCreators);
-        _isAis = currentProject.Games.Contains(TargetGame.AiSyoujyo);
-        _isHs2 = currentProject.Games.Contains(TargetGame.HoneySelect2);
-        _randomizeCab = currentProject.RandomizeCab;
-        _skipCompression = currentProject.SkipCompression;
-        _skipCleanup = currentProject.SkipCleanup;
-        _skipKnownMods = currentProject.SkipKnownMods;
+        PropertyChanged += async (_, _) => await SaveAsync();
       }
-      containerViewModel.Update();
+      else
+      {
+        _project = new ProjectConfiguration
+        {
+          InputDirectory = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Input"),
+          OutputDirectory = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Output"),
+          CacheDirectory = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Cache"),
+          RandomizeCab = true,
+          Games = new List<TargetGame>(),
+        };
+      }
     }
 
     public async Task SaveAsync()
     {
-      _hasChanges = !await _projectService.SaveProjectAsync(this);
+      if (!_hasChanges) return;
+      await _project.SaveAsync();
     }
 
     public void ValidateDirectoryConfiguration()
@@ -271,7 +264,17 @@ namespace ZipmodAssistant.App.ViewModels
       IsHs2 = false;
     }
 
-    void OnPropertyChanged([CallerMemberName] string name = "") =>
-      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    bool TryUpdateGame(bool value, params TargetGame[] gameList)
+    {
+      if (_project.Games is List<TargetGame> games)
+      {
+        if (value)
+          games.AddRange(gameList);
+        else
+          games.RemoveAll(game => gameList.Contains(game));
+        return true;
+      }
+      return false;
+    }
   }
 }

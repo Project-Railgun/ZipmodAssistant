@@ -15,7 +15,6 @@ namespace ZipmodAssistant.App.Models
     static readonly JsonSerializerOptions _serializerOptions = new()
     {
       WriteIndented = true,
-      PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
     [JsonIgnore]
@@ -40,7 +39,7 @@ namespace ZipmodAssistant.App.Models
 
     public bool SkipKnownMods { get; set; }
 
-    public IEnumerable<TargetGame> Games { get; } = Array.Empty<TargetGame>();
+    public IEnumerable<TargetGame> Games { get; set; } = new List<TargetGame>();
 
     public static async Task<ProjectConfiguration> LoadAsync(string filename!!)
     {

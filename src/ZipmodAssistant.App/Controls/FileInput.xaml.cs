@@ -77,5 +77,10 @@ namespace ZipmodAssistant.App.Controls
           return;
       }
     }
+
+    void TextChanged(object sender, TextChangedEventArgs e)
+    {
+      ValueText.ScrollToEnd();
+    }
   }
 }

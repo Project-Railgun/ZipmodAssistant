@@ -4,18 +4,17 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:pages="clr-namespace:ZipmodAssistant.App.Views.Pages"
-        xmlns:commands="clr-namespace:ZipmodAssistant.App.Commands"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:viewModels="clr-namespace:ZipmodAssistant.App.ViewModels"
         mc:Ignorable="d"
-        Height="750"
+        Height="850"
         Width="1200"
         Style="{StaticResource UiWindow}"
         WindowStyle="None"
+        ResizeMode="NoResize"
         d:DesignWidth="800"
         d:DesignHeight="450"
-        d:DataContext="{d:DesignInstance viewModels:ContainerViewModel}"
-        ResizeMode="NoResize">
+        d:DataContext="{d:DesignInstance viewModels:ContainerViewModel}">
   <Window.InputBindings>
     <KeyBinding Modifiers="Ctrl" Key="O" />
   </Window.InputBindings>
@@ -25,7 +24,7 @@
       <RowDefinition Height="*" />
     </Grid.RowDefinitions>
     <StackPanel Grid.Row="0">
-      <ui:TitleBar ForceShutdown="True" ShowMaximize="True" ShowMinimize="True" UseSnapLayout="True" Title="Zipmod Assistant" />
+      <ui:TitleBar ForceShutdown="True" ShowMaximize="False" ShowMinimize="True" UseSnapLayout="True" Title="Zipmod Assistant" />
       <Menu Margin="16,0,16,0" Background="Transparent">
         <MenuItem Header="File">
           <MenuItem Header="New" InputGestureText="Ctrl+N" Click="HandleNewProjectMenuClicked" />

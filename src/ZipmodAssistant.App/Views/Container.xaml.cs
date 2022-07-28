@@ -17,8 +17,6 @@ namespace ZipmodAssistant.App.Views
   /// </summary>
   public partial class Container : INavigationWindow
   {
-    public static OpenProjectCommand OpenProjectCommandBinding = new();
-
     private readonly IPageService _pageService;
     private readonly IThemeService _themeService;
     private readonly ITaskBarService _taskBarService;

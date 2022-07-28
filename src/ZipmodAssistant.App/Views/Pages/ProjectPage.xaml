@@ -7,7 +7,6 @@
       xmlns:controls="clr-namespace:ZipmodAssistant.App.Controls"
       xmlns:viewModels="clr-namespace:ZipmodAssistant.App.ViewModels"
       xmlns:converters="clr-namespace:ZipmodAssistant.App.Converters"
-      xmlns:sharedEnums="clr-namespace:ZipmodAssistant.Shared.Enums;assembly=ZipmodAssistant.Shared"
       mc:Ignorable="d"
       d:DesignHeight="450" d:DesignWidth="800"
       Style="{StaticResource UiPageScrollable}"
@@ -17,75 +16,67 @@
     <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibility" True="Visible" False="Collapsed" />
     <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityInverted" True="Collapsed" False="Visible" />
   </Page.Resources>
-  <Grid Margin="64,0,0,0">
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="Auto" />
-      <ColumnDefinition Width="64" />
-      <ColumnDefinition Width="Auto" />
-    </Grid.ColumnDefinitions>
-    <Grid.RowDefinitions>
-      <RowDefinition Height="Auto" />
-      <RowDefinition Height="Auto" />
-      <RowDefinition Height="16" />
-      <RowDefinition Height="*" />
-    </Grid.RowDefinitions>
-    <wpfui:CardAction Icon="Alert24" Grid.ColumnSpan="3" Margin="0,0,0,16" Visibility="{Binding IsPersisted, Converter={StaticResource BooleanToVisibilityInverted}}" Background="{StaticResource SystemFillColorAttentionBackgroundBrush}" Cursor="Hand" Click="SetProjectDirectoryClicked">
+  <StackPanel Margin="64,0,64,0">
+    <wpfui:CardAction Icon="Alert24" Margin="0,0,0,16" Visibility="{Binding IsPersisted, Converter={StaticResource BooleanToVisibilityInverted}}" Background="{StaticResource SystemFillColorAttentionBackgroundBrush}" Cursor="Hand" Click="SetProjectDirectoryClicked">
       This project is not saved. Click here to create one.
     </wpfui:CardAction>
-    <StackPanel HorizontalAlignment="Left" Background="Transparent" Grid.Column="0" Grid.Row="1">
-      <Label FontWeight="DemiBold">Input Folder</Label>
-      <controls:FileInput Margin="0,8,0,16" Value="{Binding InputDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-      <Label FontWeight="DemiBold">Output Folder</Label>
-      <controls:FileInput Margin="0,8,0,16" Value="{Binding OutputDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-      <Label FontWeight="DemiBold">Cache Folder</Label>
-      <controls:FileInput Margin="0,8,0,16" Value="{Binding CacheDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-      <wpfui:Button Margin="0,24,0,0" Click="StartClicked" Visibility="{Binding IsBuilding, Converter={StaticResource BooleanToVisibilityInverted}}" HorizontalAlignment="Stretch">Start</wpfui:Button>
-      <ProgressBar Margin="0,24,0,0" Visibility="{Binding IsBuilding, Converter={StaticResource BooleanToVisibility}}" Value="{Binding BuildProgress}" Maximum="100" />
+    <WrapPanel>
+      <StackPanel Margin="0,0,32,32">
+        <Label FontWeight="DemiBold">Input Folder</Label>
+        <controls:FileInput Margin="0,8,0,16" Value="{Binding InputDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+        <Label FontWeight="DemiBold">Output Folder</Label>
+        <controls:FileInput Margin="0,8,0,16" Value="{Binding OutputDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+        <Label FontWeight="DemiBold">Cache Folder</Label>
+        <controls:FileInput Margin="0,8,0,16" Value="{Binding CacheDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+        <wpfui:Button VerticalAlignment="Bottom" Click="StartClicked" Visibility="{Binding IsBuilding, Converter={StaticResource BooleanToVisibilityInverted}}" HorizontalAlignment="Stretch">Start</wpfui:Button>
+        <ProgressBar Margin="0,24,0,0" Visibility="{Binding IsBuilding, Converter={StaticResource BooleanToVisibility}}" Value="{Binding BuildProgress}" Maximum="100" />
 
-    </StackPanel>
-    <StackPanel HorizontalAlignment="Left" Background="Transparent" Grid.Column="2" Grid.Row="1">
-      <Grid Margin="0,0,0,0">
-        <Grid.RowDefinitions>
-          <RowDefinition Height="32" />
-          <RowDefinition Height="*" />
-          <RowDefinition Height="32" />
-          <RowDefinition Height="48" />
-          <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+      </StackPanel>
+      <StackPanel>
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="32" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="32" />
+            <RowDefinition Height="48" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+          </Grid.ColumnDefinitions>
 
-        <Label Grid.Row="0" FontWeight="DemiBold">Options</Label>
-        <StackPanel Grid.Column="0" Grid.Row="1" Margin="0,0,32,0">
-          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding RandomizeCab}">Randomize Cab</wpfui:ToggleSwitch>
-          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipRenaming}">Skip Renaming</wpfui:ToggleSwitch>
-        </StackPanel>
-        <StackPanel Grid.Column="1" Grid.Row="1">
-          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipCompression}">Skip Compression</wpfui:ToggleSwitch>
-          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipCleanup}">Skip Junk Cleanup</wpfui:ToggleSwitch>
-        </StackPanel>
+          <Label Grid.Row="0" FontWeight="DemiBold">Options</Label>
+          <StackPanel Grid.Column="0" Grid.Row="1" Margin="0,0,32,0">
+            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding RandomizeCab}">Randomize Cab</wpfui:ToggleSwitch>
+            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipRenaming}">Skip Renaming</wpfui:ToggleSwitch>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Grid.Row="1">
+            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipCompression}">Skip Compression</wpfui:ToggleSwitch>
+            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipCleanup}">Skip Junk Cleanup</wpfui:ToggleSwitch>
+          </StackPanel>
 
-        <StackPanel Grid.Row="3" Grid.ColumnSpan="2">
-          <Label FontWeight="DemiBold">Game tag</Label>
-          <Label FontWeight="ExtraLight">Leave all unchecked to not change</Label>
-        </StackPanel>
-        <StackPanel Grid.Row="4" Grid.Column="0">
-          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsKk}">KK</wpfui:ToggleSwitch>
-          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsKks}">KKS</wpfui:ToggleSwitch>
-          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsEc}">EC</wpfui:ToggleSwitch>
-        </StackPanel>
-        <StackPanel Grid.Row="4" Grid.Column="1">
-          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsAis}">AIS</wpfui:ToggleSwitch>
-          <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsHs2}">HS2</wpfui:ToggleSwitch>
-          <Button Margin="0,16,0,0" Cursor="Hand" Click="RemoveGameTagsClicked" Background="Transparent" BorderBrush="Transparent" Padding="0" Foreground="{StaticResource SystemAccentColorPrimaryBrush}">
-            Remove all
-          </Button>
-        </StackPanel>
-      </Grid>
-    </StackPanel>
-    <ScrollViewer Grid.ColumnSpan="3" Grid.Row="3" VerticalScrollBarVisibility="Visible" x:Name="LogMessageScroll" MaxWidth="820">
+          <StackPanel Grid.Row="3" Grid.ColumnSpan="2">
+            <Label FontWeight="DemiBold">Game tag</Label>
+            <Label FontWeight="ExtraLight">Leave all unchecked to not change</Label>
+          </StackPanel>
+          <StackPanel Grid.Row="4" Grid.Column="0">
+            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsKk}">KK</wpfui:ToggleSwitch>
+            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsKks}">KKS</wpfui:ToggleSwitch>
+            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsEc}">EC</wpfui:ToggleSwitch>
+          </StackPanel>
+          <StackPanel Grid.Row="4" Grid.Column="1">
+            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsAis}">AIS</wpfui:ToggleSwitch>
+            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsHs2}">HS2</wpfui:ToggleSwitch>
+            <Button Margin="0,16,0,0" Cursor="Hand" Click="RemoveGameTagsClicked" Background="Transparent" BorderBrush="Transparent" Padding="0" Foreground="{StaticResource SystemAccentColorPrimaryBrush}">
+              Remove all
+            </Button>
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </WrapPanel>
+    
+    <ScrollViewer Height="286" VerticalScrollBarVisibility="Visible" x:Name="LogMessageScroll">
       <Grid>
         <ItemsControl ItemsSource="{Binding LogMessages}" Padding="16" HorizontalAlignment="Stretch">
           <ItemsControl.Background>
@@ -97,7 +88,7 @@
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
-        <wpfui:Button Icon="Clipboard24" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="4" Cursor="Hand" ToolTip="Copy to clipboard" Click="CopyAllClicked" />
+        
         <wpfui:Snackbar Icon="Checkmark24" x:Name="ClipboardNotification" Timeout="5000">
           <wpfui:Snackbar.Background>
             <SolidColorBrush Color="{StaticResource SmokeFillColorDefault}" />
@@ -108,5 +99,11 @@
         </wpfui:Snackbar>
       </Grid>
     </ScrollViewer>
-  </Grid>
+    <WrapPanel Margin="0,16,0,0" >
+      <wpfui:Button Margin="0,0,8,0" Icon="Clipboard24" HorizontalAlignment="Right" Cursor="Hand" ToolTip="Copy to clipboard" Click="CopyAllClicked" />
+      <wpfui:Button Margin="0,0,8,0" Icon="ArrowUp24" Cursor="Hand" ToolTip="Scroll to top" Click="ScrollToTopClicked" />
+      <wpfui:Button Margin="0,0,8,0" Icon="ArrowDown24" Cursor="Hand" ToolTip="Scroll to bottom" Click="ScrollToBottomClicked" />
+      <wpfui:Button Icon="Delete24" Cursor="Hand" ToolTip="Clear logs" Click="ClearLogMessagesClicked" />
+    </WrapPanel>
+  </StackPanel>
 </Page>

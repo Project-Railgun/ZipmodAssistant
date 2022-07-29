@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using ZipmodAssistant.Api.Exceptions;
 using ZipmodAssistant.Api.Extensions;
 using ZipmodAssistant.Api.Interfaces.Models;
 
@@ -78,7 +79,7 @@ namespace ZipmodAssistant.Api.Models
         manifest.Hash = Convert.ToBase64String(streamHash);
         return manifest;
       }
-      throw new ArgumentException("Invalid manifest XML", nameof(stream));
+      throw new MalformedManifestException("Invalid manifest");
     }
 
     public override string ToString()

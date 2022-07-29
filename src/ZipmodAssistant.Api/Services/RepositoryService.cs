@@ -12,6 +12,7 @@ using ZipmodAssistant.Api.Enums;
 using ZipmodAssistant.Api.Exceptions;
 using ZipmodAssistant.Api.Extensions;
 using ZipmodAssistant.Api.Interfaces.Models;
+using ZipmodAssistant.Api.Interfaces.Repositories;
 using ZipmodAssistant.Api.Interfaces.Services;
 using ZipmodAssistant.Api.Models;
 using ZipmodAssistant.Api.Utilities;
@@ -25,57 +26,69 @@ namespace ZipmodAssistant.Api.Services
     private readonly ISessionService _sessionService;
     private readonly IAssetService _assetService;
     private readonly ICardProvider _cardProvider;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IZipmodRepository _zipmodRepository;
 
     public RepositoryService(
       ILoggerService logger,
       ISessionService sessionService,
       IAssetService assetService,
       ICardProvider cardProvider,
-      IServiceProvider serviceProvider)
+      IZipmodRepository zipmodRepository)
     {
       _logger = logger;
       _sessionService = sessionService;
       _assetService = assetService;
       _cardProvider = cardProvider;
-      _serviceProvider = serviceProvider;
+      _zipmodRepository = zipmodRepository;
     }
 
-    public async Task<IBuildRepository> GetRepositoryFromDirectoryAsync(IBuildConfiguration configuration)
+    public async Task<IBuildSetup> GetRepositoryFromDirectoryAsync(IBuildConfiguration configuration)
     {
-      var repository = new BuildRepository(configuration);
+      var repository = new BuildSetup(configuration);
       var repositoryLock = new object();
 
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       var files = Directory.EnumerateFiles(configuration.InputDirectory, "*.*", SearchOption.AllDirectories);
       foreach (var filename in files)
       {
         var fileInfo = new FileInfo(filename);
-        Manifest? manifest = default;
+        Manifest manifest;
         try
         {
           if (fileInfo.Name.Equals("manifest.xml"))
           {
-            manifest = await Manifest.ReadFromStreamAsync(fileInfo.OpenRead());
+            try
+            {
+              manifest = await Manifest.ReadFromStreamAsync(fileInfo.OpenRead());
+            }
+            catch (MalformedManifestException)
+            {
+              _logger.Log($"Received bad manifest: {filename}");
+              continue;
+            }
           }
           else if (fileInfo.Extension.Equals(".zipmod") || fileInfo.Extension.Equals(".zip"))
           {
-            using var zipArchive = System.IO.Compression.ZipFile.OpenRead(filename);
-            using var manifestStream = zipArchive.GetEntry("manifest.xml").Open();
-            manifest = await Manifest.ReadFromStreamAsync(manifestStream);
+            try
+            {
+              using var zipArchive = System.IO.Compression.ZipFile.OpenRead(filename);
+              using var manifestStream = zipArchive.GetEntry("manifest.xml").Open();
+              manifest = await Manifest.ReadFromStreamAsync(manifestStream);
+            }
+            catch (MalformedManifestException)
+            {
+              _logger.Log($"Received bad manifest: {filename}");
+              fileInfo.MoveToSafely(Path.Join(configuration.OutputDirectory, "Malformed"));
+              continue;
+            }
           }
           else
           {
             continue;
           }
-          var priorEntry = await dbContext.ManifestHistoryEntries.FindAsync(manifest.Hash);
-          if (priorEntry != null)
+          if (configuration.SkipKnownMods && await _zipmodRepository.IsManifestInHistoryAsync(manifest))
           {
-            if (priorEntry.CanSkip)
-            {
-              continue;
-            }
-            // TODO: version check
+            _logger.Log($"{manifest.Guid} is a known mod, skipping");
+            continue;
           }
           var tempDirectory = Path.Join(configuration.CacheDirectory, manifest.Guid);
           var zipmod = new Zipmod(fileInfo, tempDirectory, manifest);
@@ -96,16 +109,14 @@ namespace ZipmodAssistant.Api.Services
       return repository;
     }
 
-    static string GetZipmodFile(IZipmod zipmod, string filename) => Path.Join(zipmod.WorkingDirectory, filename);
-
     void UpdateManifests(IZipmod zipmod, IBuildConfiguration buildConfiguration)
     {
-      File.Copy(GetZipmodFile(zipmod, "manifest.xml"), GetZipmodFile(zipmod, "manifest-orig.xml"), true);
-      if (buildConfiguration.Games.Count() > 0)
+      File.Copy(zipmod.GetPath("manifest.xml"), zipmod.GetPath("manifest-orig.xml"), true);
+      if (buildConfiguration.Games.Any())
       {
         zipmod.Manifest.Games = buildConfiguration.Games.Select(g => g.ToString()).ToArray();
       }
-      File.WriteAllText(GetZipmodFile(zipmod, "manifest.xml"), $"""
+      File.WriteAllText(zipmod.GetPath("manifest.xml"), $"""
         <!-- Generated with ZipmodAssistant -->
         {zipmod.Manifest}
         """);
@@ -126,38 +137,19 @@ namespace ZipmodAssistant.Api.Services
       }
     }
 
-    ZipmodType GetZipmodType(IZipmod zipmod)
-    {
-      if (Directory.Exists(GetZipmodFile(zipmod, "abdata\\list\\characustom")))
-      {
-        return ZipmodType.Game;
-      }
-      if (Directory.Exists(GetZipmodFile(zipmod, "abdata\\studio\\info")))
-      {
-        return ZipmodType.Studio;
-      }
-      if (Directory.Exists(GetZipmodFile(zipmod, "abdata\\map\\list\\mapinfo")))
-      {
-        return ZipmodType.MapGame;
-      }
-      if (
-        Directory.Exists(GetZipmodFile(zipmod, "abdata\\studio")) &&
-        Directory.GetFiles(GetZipmodFile(zipmod, "abdata\\studio")).Any(f => new FileInfo(f).Name.StartsWith("Map_")))
-      {
-        return ZipmodType.MapStudio;
-      }
-      return ZipmodType.Unknown;
-    }
-
-    public async Task ProcessRepositoryAsync(IBuildRepository repository)
+    public async Task ProcessRepositoryAsync(IBuildSetup repository)
     {
       var startTime = DateTime.Now;
       await Parallel.ForEachAsync(repository, async (zipmod, cancelToken) =>
       {
-        var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
         try
         {
           MoveZipmodToWorkingDirectory(zipmod);
+          // this has to get called after extracted to the cache directory so we can scan for zipmod type
+          if (await _zipmodRepository.IsNewerVersionAvailableAsync(zipmod))
+          {
+            _logger.Log($"{zipmod.Manifest.Guid} has a newer version locally, skipping");
+          }
           UpdateManifests(zipmod, repository.Configuration);
           var zipmodFiles = Directory.EnumerateFiles(zipmod.WorkingDirectory, "*.*", SearchOption.AllDirectories);
           await Parallel.ForEachAsync(zipmodFiles, async (file, cancelToken) =>
@@ -212,7 +204,7 @@ namespace ZipmodAssistant.Api.Services
                 break;
             }
           });
-          var zipmodType = GetZipmodType(zipmod);
+          var zipmodType = zipmod.GetZipmodType();
           var outputDirectory = Path.Join(
             repository.Configuration.OutputDirectory,
               "treated",
@@ -230,6 +222,18 @@ namespace ZipmodAssistant.Api.Services
           archive.AddAllFromDirectory(zipmod.WorkingDirectory);
           archive.SaveTo(outputFilename, CompressionType.None);
           await _sessionService.CommitResultAsync(new SessionResult(zipmod, outputFilename, SessionResultType.ZipmodCreated));
+          if (await _zipmodRepository.AddZipmodAsync(zipmod))
+          {
+            _logger.Log($"Beginning tracking of {zipmod.Manifest.Guid}", LogReason.Debug);
+          }
+          else if (await _zipmodRepository.UpdateZipmodAsync(zipmod))
+          {
+            _logger.Log($"Updating prior entry of {zipmod.Manifest.Guid}", LogReason.Debug);
+          }
+          else
+          {
+            _logger.Log($"Failed to update history of {zipmod.Manifest.Guid}");
+          }
           if (!repository.Configuration.SkipCleanup)
           {
             Directory.Delete(zipmod.WorkingDirectory, true);

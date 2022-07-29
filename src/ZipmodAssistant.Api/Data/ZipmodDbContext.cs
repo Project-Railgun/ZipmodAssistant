@@ -10,7 +10,7 @@ namespace ZipmodAssistant.Api.Data
 {
   public class ZipmodDbContext : DbContext
   {
-    public DbSet<ManifestHistoryEntry> ManifestHistoryEntries { get; set; }
+    public DbSet<PriorZipmodEntry> PriorZipmodEntries { get; set; }
     public DbSet<SessionResultEntry> SessionResultEntries { get; set; }
 
     public ZipmodDbContext(DbContextOptions<ZipmodDbContext> options) : base(options)

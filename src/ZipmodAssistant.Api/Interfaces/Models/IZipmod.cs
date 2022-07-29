@@ -3,7 +3,7 @@
 namespace ZipmodAssistant.Api.Interfaces.Models
 {
   /// <summary>
-  ///   Represents a zipmod inside of a <see cref="IBuildRepository"/>
+  ///   Represents a zipmod inside of a <see cref="IBuildSetup"/>
   /// </summary>
   public interface IZipmod
   {

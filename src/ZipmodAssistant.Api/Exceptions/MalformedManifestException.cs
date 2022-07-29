@@ -4,11 +4,9 @@ namespace ZipmodAssistant.Api.Exceptions
 {
   public class MalformedManifestException : Exception
   {
-    public IManifest Manifest { get; set; }
-
-    public MalformedManifestException(IManifest manifest, string paramName) : base($"Malformed manifest.xml: {paramName}")
+    public MalformedManifestException(string reason) : base($"Malformed manifest.xml: {reason}")
     {
-      Manifest = manifest;
+
     }
   }
 }

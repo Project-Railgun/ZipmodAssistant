@@ -15,11 +15,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Interfaces\Providers\" />
-    <Folder Include="Providers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Aspose.Imaging" Version="22.7.0" />
     <PackageReference Include="AssetsTools.NET" Version="2.0.12" />
     <PackageReference Include="Handlebars.Net" Version="2.1.2" />

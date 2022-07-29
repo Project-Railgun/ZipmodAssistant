@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ZipmodAssistant.Api.Data.DataModels
 {
-  public class ManifestHistoryEntry
+  public class PriorZipmodEntry
   {
     [Key]
     public string Hash { get; set; }

@@ -42,5 +42,9 @@
     ///   are no restrictions
     /// </summary>
     string[] Games { get; set; }
+    /// <summary>
+    ///   A base64 hash of the manifest
+    /// </summary>
+    string Hash { get; set; }
   }
 }

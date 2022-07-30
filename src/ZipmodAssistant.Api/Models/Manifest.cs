@@ -21,7 +21,7 @@ namespace ZipmodAssistant.Api.Models
     [XmlIgnore]
     public string FileLocation { get; set; } = string.Empty;
     [XmlIgnore]
-    public string Hash { get; private set; }
+    public string Hash { get; set; } = string.Empty;
     [XmlAttribute("schema-ver")]
     public string SchemaVersion { get; set; } = string.Empty;
     [XmlElement("guid", IsNullable = false)]

@@ -1,5 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using ZipmodAssistant.Api.Data;
+using ZipmodAssistant.Api.Interfaces.Repositories;
 using ZipmodAssistant.Api.Interfaces.Services;
+using ZipmodAssistant.Api.Repositories;
 using ZipmodAssistant.Api.Services;
 
 namespace ZipmodAssistant.Api.Extensions
@@ -11,6 +14,7 @@ namespace ZipmodAssistant.Api.Extensions
         .AddScoped<ILoggerService, LoggerService>()
         .AddScoped<IRepositoryService, RepositoryService>()
         .AddSingleton<ISessionService, SessionService>()
-        .AddScoped<IAssetService, AssetService>();
+        .AddScoped<IAssetService, AssetService>()
+        .AddScoped<IZipmodRepository, ZipmodRepository>();
   }
 }

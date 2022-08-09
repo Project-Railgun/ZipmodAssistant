@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SharpCompress.Archives;
 using SharpCompress.Archives.Zip;
 using SharpCompress.Common;
@@ -22,14 +23,14 @@ namespace ZipmodAssistant.Api.Services
 {
   public class RepositoryService : IRepositoryService
   {
-    private readonly ILoggerService _logger;
+    private readonly ILogger<IRepositoryService> _logger;
     private readonly ISessionService _sessionService;
     private readonly IAssetService _assetService;
     private readonly ICardProvider _cardProvider;
     private readonly IZipmodRepository _zipmodRepository;
 
     public RepositoryService(
-      ILoggerService logger,
+      ILogger<IRepositoryService> logger,
       ISessionService sessionService,
       IAssetService assetService,
       ICardProvider cardProvider,
@@ -62,7 +63,7 @@ namespace ZipmodAssistant.Api.Services
             }
             catch (MalformedManifestException)
             {
-              _logger.Log($"Received bad manifest: {filename}");
+              _logger.LogError("Received bad manifest: {filename}", filename);
               continue;
             }
           }
@@ -76,7 +77,7 @@ namespace ZipmodAssistant.Api.Services
             }
             catch (MalformedManifestException)
             {
-              _logger.Log($"Received bad manifest: {filename}");
+              _logger.LogDebug("Received bad manifest: {filename}", filename);
               fileInfo.MoveToSafely(Path.Join(configuration.OutputDirectory, "Malformed"));
               continue;
             }
@@ -87,7 +88,7 @@ namespace ZipmodAssistant.Api.Services
           }
           if (configuration.SkipKnownMods && await _zipmodRepository.IsManifestInHistoryAsync(manifest))
           {
-            _logger.Log($"{manifest.Guid} is a known mod, skipping");
+            _logger.LogDebug("{manifestGuid} is a known mod, skipping", manifest.Guid);
             continue;
           }
           var tempDirectory = Path.Join(configuration.CacheDirectory, manifest.Guid);
@@ -102,7 +103,7 @@ namespace ZipmodAssistant.Api.Services
         }
         catch (Exception ex)
         {
-          _logger.Log($"Failed to add {filename}\n{ex}", LogReason.Error);
+          _logger.LogError(ex, "Failed to add {filename}", filename);
         }
       }
 
@@ -120,7 +121,7 @@ namespace ZipmodAssistant.Api.Services
         <!-- Generated with ZipmodAssistant -->
         {zipmod.Manifest}
         """);
-      _logger.Log($"Updated manifests for {zipmod.Manifest.Guid}", LogReason.Debug);
+      _logger.LogDebug("Updated manifests for {manifestGuid}", zipmod.Manifest.Guid);
     }
 
     void MoveZipmodToWorkingDirectory(IZipmod zipmod)
@@ -128,12 +129,12 @@ namespace ZipmodAssistant.Api.Services
       if (zipmod.FileInfo.Name.Equals("manifest.xml") && zipmod.FileInfo.Directory != null)
       {
         zipmod.FileInfo.Directory.CopyTo(zipmod.WorkingDirectory, true);
-        _logger.Log($"Copied {zipmod.Manifest.Guid} to {zipmod.WorkingDirectory}");
+        _logger.LogInformation("Copied {manifestGuid} to {workingDirectory}", zipmod.Manifest.Guid, zipmod.WorkingDirectory);
       }
       else
       {
         System.IO.Compression.ZipFile.ExtractToDirectory(zipmod.FileInfo.FullName, zipmod.WorkingDirectory, true);
-        _logger.Log($"Extracted zipmod to temp directory {zipmod.WorkingDirectory}");
+        _logger.LogInformation("Extracted zipmod to temp directory {workingDirectory}", zipmod.WorkingDirectory);
       }
     }
 
@@ -148,7 +149,7 @@ namespace ZipmodAssistant.Api.Services
           // this has to get called after extracted to the cache directory so we can scan for zipmod type
           if (await _zipmodRepository.IsNewerVersionAvailableAsync(zipmod))
           {
-            _logger.Log($"{zipmod.Manifest.Guid} has a newer version locally, skipping");
+            _logger.LogInformation("{manifestGuid} has a newer version locally, skipping", zipmod.Manifest.Guid);
           }
           UpdateManifests(zipmod, repository.Configuration);
           var zipmodFiles = Directory.EnumerateFiles(zipmod.WorkingDirectory, "*.*", SearchOption.AllDirectories);
@@ -165,28 +166,28 @@ namespace ZipmodAssistant.Api.Services
               case ".unity3d":
                 if (repository.Configuration.RandomizeCab)
                 {
-                  _logger.Log("Randomizing CAB", LogReason.Debug);
+                  _logger.LogDebug("Randomizing CAB for {file}", file);
                   var randomizeCabDuration = await TimingUtilities.TimeAsync(async () =>
                   {
                     var didRandomize = await _assetService.RandomizeCabAsync(repository.Configuration, file);
                     await _sessionService.CommitResultAsync(new SessionResult(zipmod, file, didRandomize ? SessionResultType.ResourceCabRandomized : SessionResultType.NoChange));
                   });
-                  _logger.Log($"CAB randomization of {file} took {randomizeCabDuration.TotalMilliseconds}ms", LogReason.Debug);
+                  _logger.LogDebug("CAB randomization of {file} took {time}ms", file, randomizeCabDuration.TotalMilliseconds);
                 }
                 if (repository.Configuration.SkipCompression)
                 {
-                  _logger.Log("Compression skipped, copying", LogReason.Debug);
+                  _logger.LogDebug("Compression skipped, copying");
                 }
                 else
                 {
-                  _logger.Log("Compressing unity3d file", LogReason.Debug);
+                  _logger.LogDebug("Compressing unity3d file");
                   var compressionDuration = await TimingUtilities.TimeAsync(async () =>
                   {
                     var didCompress = await _assetService.CompressUnityResxAsync(repository.Configuration, file);
                     await _sessionService.CommitResultAsync(new SessionResult(zipmod, file, didCompress ? SessionResultType.ResourceCompressed : SessionResultType.NoChange));
                     
                   });
-                  _logger.Log($"Compression of {file} took {compressionDuration.TotalMilliseconds}ms", LogReason.Debug);
+                  _logger.LogDebug("Compression of {file} took {time}ms", file, compressionDuration.TotalMilliseconds);
                 }
                 break;
               case ".csv":
@@ -198,7 +199,7 @@ namespace ZipmodAssistant.Api.Services
                 // this file is being worked on, skip
                 break;
               default:
-                _logger.Log($"Invalid file, deleting", LogReason.Debug);
+                _logger.LogDebug("Invalid file {file}, deleting", file);
                 await _sessionService.CommitResultAsync(new SessionResult(zipmod, file, SessionResultType.ResourceDeleted));
                 fileInfo.Delete();
                 break;
@@ -224,29 +225,29 @@ namespace ZipmodAssistant.Api.Services
           await _sessionService.CommitResultAsync(new SessionResult(zipmod, outputFilename, SessionResultType.ZipmodCreated));
           if (await _zipmodRepository.AddZipmodAsync(zipmod))
           {
-            _logger.Log($"Beginning tracking of {zipmod.Manifest.Guid}", LogReason.Debug);
+            _logger.LogDebug("Beginning tracking of {manifestGuid}", zipmod.Manifest.Guid);
           }
           else if (await _zipmodRepository.UpdateZipmodAsync(zipmod))
           {
-            _logger.Log($"Updating prior entry of {zipmod.Manifest.Guid}", LogReason.Debug);
+            _logger.LogDebug("Updating prior entry of {manifestGuid}", zipmod.Manifest.Guid);
           }
           else
           {
-            _logger.Log($"Failed to update history of {zipmod.Manifest.Guid}");
+            _logger.LogError("Failed to update history of {manifestGuid}", zipmod.Manifest.Guid);
           }
           if (!repository.Configuration.SkipCleanup)
           {
             Directory.Delete(zipmod.WorkingDirectory, true);
-            _logger.Log($"Cleaned {repository.Configuration.CacheDirectory}");
+            _logger.LogInformation("Cleaned {cacheDirectory}", repository.Configuration.CacheDirectory);
           }
         }
         catch (Exception ex)
         {
-          _logger.Log(ex);
+          _logger.LogError(ex, "Repository failed");
         }
       });
       var endTime = DateTime.Now;
-      _logger.Log($"Processing complete, took {(endTime - startTime).TotalMilliseconds}ms");
+      _logger.LogInformation("Processing complete, took {time}ms", (endTime - startTime).TotalMilliseconds);
     }
   }
 }

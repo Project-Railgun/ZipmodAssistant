@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -22,7 +23,6 @@ namespace ZipmodAssistant.App.ViewModels
   public class ProjectViewModel : ViewModel, IProjectConfiguration
   {
     private readonly IProjectService _projectService;
-    private readonly ILoggerService _logger;
     private readonly IProjectConfiguration _project;
 
     private bool _hasChanges = false;
@@ -218,10 +218,9 @@ namespace ZipmodAssistant.App.ViewModels
 
     public ObservableCollection<string> LogMessages { get; set; } = new();
 
-    public ProjectViewModel(IProjectService projectService, ILoggerService logger)
+    public ProjectViewModel(IProjectService projectService)
     {
       _projectService = projectService;
-      _logger = logger;
       _project = projectService.GetCurrentProject();
       PropertyChanged += (_, _) => _hasChanges = true;
       if (_project != null)

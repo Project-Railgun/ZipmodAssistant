@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,10 +16,10 @@ namespace ZipmodAssistant.App.Services
   {
     public const string ProjectExtension = "zaproj";
 
-    private readonly ILoggerService _logger;
+    private readonly ILogger<IProjectService> _logger;
     private IProjectConfiguration? _currentProject;
 
-    public ProjectService(ILoggerService logger)
+    public ProjectService(ILogger<IProjectService> logger)
     {
       _logger = logger;
     }
@@ -48,7 +49,7 @@ namespace ZipmodAssistant.App.Services
       }
       catch (Exception ex)
       {
-        _logger.Log(ex);
+        _logger.LogError(ex, "An error occured when creating the project {name}", name);
         throw;
       }
     }
@@ -64,7 +65,7 @@ namespace ZipmodAssistant.App.Services
       }
       catch (Exception ex)
       {
-        _logger.Log(ex);
+        _logger.LogError(ex, "An error occured when loading {filename}", projectFilename);
         throw;
       }
     }
@@ -90,7 +91,7 @@ namespace ZipmodAssistant.App.Services
       }
       catch (Exception ex)
       {
-        _logger.Log(ex);
+        _logger.LogError(ex, "An error occured when saving {filename}", configuration.Filename);
         return false;
       }
     }

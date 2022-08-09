@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -20,7 +21,6 @@ using Wpf.Ui.Mvvm.Contracts;
 using Wpf.Ui.TaskBar;
 using ZipmodAssistant.Api.Enums;
 using ZipmodAssistant.Api.Interfaces.Services;
-using ZipmodAssistant.App.Extensions;
 using ZipmodAssistant.App.Interfaces.Services;
 using ZipmodAssistant.App.ViewModels;
 
@@ -31,7 +31,7 @@ namespace ZipmodAssistant.App.Views.Pages
   /// </summary>
   public partial class ProjectPage : Page
   {
-    private readonly ILoggerService _logger;
+    private readonly ILogger<ProjectPage> _logger;
     private readonly IRepositoryService _repositoryService;
     private readonly ISessionService _sessionService;
     private readonly INavigationWindow _navigationWindow;
@@ -43,7 +43,7 @@ namespace ZipmodAssistant.App.Views.Pages
     public ProjectPage(
       INavigationWindow navigationWindow,
       IRepositoryService repositoryService,
-      ILoggerService loggerService,
+      ILogger<ProjectPage> loggerService,
       ISessionService sessionService,
       ITaskBarService taskBarService,
       IProjectService projectService,
@@ -56,14 +56,15 @@ namespace ZipmodAssistant.App.Views.Pages
       _taskBarService = taskBarService;
       DataContext = viewModel;
       InitializeComponent();
-
-      _logger.MessageLogged += (sender, message) => Dispatcher.Invoke(() =>
+      viewModel.LogMessages.CollectionChanged += (sender, args) =>
       {
-        ViewModel.LogMessages.Add(message);
         LogMessageScroll.ScrollToBottom();
-      });
-      _logger.Log("Initiated logging");
-      _logger.Log($"{Assembly.GetEntryAssembly().GetName().Name} v{Assembly.GetEntryAssembly().GetName().Version}");
+      };
+      _logger.LogInformation("Initiated logging");
+      _logger.LogInformation(
+        "{name} v{version}",
+        Assembly.GetEntryAssembly().GetName().Name,
+        Assembly.GetEntryAssembly().GetName().Version);
     }
 
     void RemoveGameTagsClicked(object sender, RoutedEventArgs e)
@@ -105,29 +106,17 @@ namespace ZipmodAssistant.App.Views.Pages
         ViewModel.BuildProgress = 90;
         var reportFilename = $"report-{DateTime.Now:MM_dd_yyyy__HH_mm}.html";
         await File.WriteAllTextAsync(reportFilename, report);
-        Process.Start(@"cmd.exe", @"/c " + reportFilename);
-        _logger.Log($"Report generated at {reportFilename}");
-        
+        Process.Start("cmd.exe", $"/c {reportFilename}");
+        _logger.LogInformation("Report generated at {reportFilename}", reportFilename);
       }
       catch (DirectoryNotFoundException ex)
       {
-        _logger.Log(ex);
+        _logger.LogCritical(ex, "Directory not found {directory}", ViewModel.InputDirectory);
       }
       finally
       {
         ViewModel.BuildProgress = 100;
         ViewModel.IsBuilding = false;
-        if (!ViewModel.SkipCleanup)
-        {
-          foreach (var dir in Directory.EnumerateDirectories(ViewModel.CacheDirectory))
-          {
-            Directory.Delete(dir, true);
-          }
-          foreach (var file in Directory.EnumerateFiles(ViewModel.CacheDirectory))
-          {
-            File.Delete(file);
-          }
-        }
       }
     }
   }

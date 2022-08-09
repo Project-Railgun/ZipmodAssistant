@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,7 +19,7 @@ namespace ZipmodAssistant.App.Services
   public class ApplicationHostService : IHostedService
   {
     private readonly IAppConfiguration _appConfiguration;
-    private readonly ILoggerService _logger;
+    private readonly ILogger<ApplicationHostService> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly INavigationService _navigationService;
     private readonly IPageService _pageService;
@@ -26,11 +27,10 @@ namespace ZipmodAssistant.App.Services
     private readonly ITaskBarService _taskBarService;
 
     private INavigationWindow _navigationWindow;
-    private StreamWriter _logFile;
 
     public ApplicationHostService(
       IAppConfiguration appConfiguration,
-      ILoggerService logger,
+      ILogger<ApplicationHostService> logger,
       IServiceProvider serviceProvider,
       IPageService pageService,
       IThemeService themeService,
@@ -53,15 +53,7 @@ namespace ZipmodAssistant.App.Services
       {
         Directory.CreateDirectory("logs");
       }
-      _logFile = File.CreateText(Path.Join(
-        AppDomain.CurrentDomain.BaseDirectory,
-        "logs",
-        $"log_{startTime:MM_dd_yyyy__hh_mm_ss}.txt"));
-      _logFile.AutoFlush = true;
-      _logger.MessageLogged += (sender, message) =>
-      {
-        _logFile.WriteLine(message);
-      };
+      
       _navigationService.SetPageService(_pageService);
       if (!Application.Current.Windows.OfType<Container>().Any())
       {
@@ -80,7 +72,7 @@ namespace ZipmodAssistant.App.Services
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-      await _logFile.DisposeAsync();
+      
     }
   }
 }

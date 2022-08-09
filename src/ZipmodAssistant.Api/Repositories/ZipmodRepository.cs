@@ -13,40 +13,37 @@ namespace ZipmodAssistant.Api.Repositories
 {
   public class ZipmodRepository : IZipmodRepository
   {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly ZipmodDbContext _dbContext;
 
-    public ZipmodRepository(IServiceProvider serviceProvider)
+    public ZipmodRepository(ZipmodDbContext dbContext)
     {
-      _serviceProvider = serviceProvider;
+      _dbContext = dbContext;
     }
 
     public async Task<bool> AddZipmodAsync(IZipmod zipmod)
     {
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
-      if (zipmod.Manifest == null || dbContext.PriorZipmodEntries.Any(e => e.Hash.Equals(zipmod.Hash)))
+      if (zipmod.Manifest == null || _dbContext.PriorZipmodEntries.Find(zipmod.Manifest.Guid) != null)
       {
         return false;
       }
-      var entry = await dbContext.PriorZipmodEntries.AddAsync(GetPriorZipmodEntryFromZipmod(zipmod));
-      await dbContext.SaveChangesAsync();
+      var entry = await _dbContext.PriorZipmodEntries.AddAsync(GetPriorZipmodEntryFromZipmod(zipmod));
+      await _dbContext.SaveChangesAsync();
       return true;
     }
 
     public async Task<bool> IsManifestInHistoryAsync(IManifest manifest!!)
     {
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
-      var entry = await dbContext.PriorZipmodEntries.FindAsync(manifest.Hash);
+      var entry = await _dbContext.PriorZipmodEntries.FindAsync(manifest.Hash);
       return entry != null;
     }
 
     public async Task<bool> IsNewerVersionAvailableAsync(IZipmod zipmod)
     {
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
-      if (zipmod.Manifest == null || !dbContext.PriorZipmodEntries.Any(e => e.Hash.Equals(zipmod.Hash)))
+      if (zipmod.Manifest == null || _dbContext.PriorZipmodEntries.Find(zipmod.Manifest.Guid) != null)
       {
         return false;
       }
-      var entry = await dbContext.PriorZipmodEntries.FindAsync(zipmod.Hash);
+      var entry = await _dbContext.PriorZipmodEntries.FindAsync(zipmod.Hash);
       if (entry == null)
       {
         return false;
@@ -58,54 +55,50 @@ namespace ZipmodAssistant.Api.Repositories
 
     public async Task<bool> SetCanSkipZipmodAsync(IZipmod zipmod, bool canSkip)
     {
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       if (zipmod.Manifest == null)
       {
         return false;
       }
-      var entry = await dbContext.PriorZipmodEntries.FindAsync(zipmod.Hash);
+      var entry = await _dbContext.PriorZipmodEntries.FindAsync(zipmod.Hash);
       if (entry == null)
       {
         return false;
       }
       entry.CanSkip = canSkip;
-      dbContext.PriorZipmodEntries.Update(entry);
-      await dbContext.SaveChangesAsync();
+      _dbContext.PriorZipmodEntries.Update(entry);
+      await _dbContext.SaveChangesAsync();
       return true;
     }
 
     public async Task<bool> RemoveZipmodAsync(IZipmod zipmod)
     {
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       if (zipmod.Manifest == null)
       {
         return false;
       }
-      var entry = await dbContext.PriorZipmodEntries.FindAsync(zipmod.Hash);
+      var entry = await _dbContext.PriorZipmodEntries.FindAsync(zipmod.Hash);
       if (entry == null)
       {
         return false;
       }
-      dbContext.PriorZipmodEntries.Remove(entry);
-      await dbContext.SaveChangesAsync();
+      _dbContext.PriorZipmodEntries.Remove(entry);
+      await _dbContext.SaveChangesAsync();
       return true;
     }
 
     public async Task<bool> UpdateZipmodAsync(IZipmod zipmod)
     {
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       if (zipmod.Manifest == null)
       {
         return false;
       }
-      dbContext.PriorZipmodEntries.Update(GetPriorZipmodEntryFromZipmod(zipmod));
-      await dbContext.SaveChangesAsync();
+      _dbContext.PriorZipmodEntries.Update(GetPriorZipmodEntryFromZipmod(zipmod));
+      await _dbContext.SaveChangesAsync();
       return true;
     }
 
     static PriorZipmodEntry GetPriorZipmodEntryFromZipmod(IZipmod zipmod) => new()
     {
-      Hash = zipmod.Hash,
       Guid = zipmod.Manifest.Guid,
       CanSkip = true,
       Version = zipmod.Manifest.Version,

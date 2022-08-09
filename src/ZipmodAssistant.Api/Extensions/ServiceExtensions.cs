@@ -11,7 +11,6 @@ namespace ZipmodAssistant.Api.Extensions
   {
     public static IServiceCollection AddZipmodAssistant(this IServiceCollection provider) =>
       provider
-        .AddScoped<ILoggerService, LoggerService>()
         .AddScoped<IRepositoryService, RepositoryService>()
         .AddSingleton<ISessionService, SessionService>()
         .AddScoped<IAssetService, AssetService>()

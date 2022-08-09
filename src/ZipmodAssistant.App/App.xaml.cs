@@ -3,7 +3,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -28,9 +30,9 @@ using ZipmodAssistant.Tarot.Extensions;
 
 namespace ZipmodAssistant.App
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
+  /// <summary>
+  /// Interaction logic for App.xaml
+  /// </summary>
   public partial class App : Application
   {
     private readonly IServiceProvider _serviceProvider;
@@ -41,7 +43,6 @@ namespace ZipmodAssistant.App
       var services = new ServiceCollection();
       _serviceProvider = services.BuildServiceProvider();
       AppDomain.CurrentDomain.UnhandledException += UnhandledException;
-      DependencyInjectionSource.ServiceProvider = _serviceProvider;
     }
 
     void UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -58,9 +59,7 @@ namespace ZipmodAssistant.App
     async void OnStartup(object sender, StartupEventArgs args)
     {
       AppDomain.CurrentDomain.UnhandledException += UnhandledException;
-      _host = Host.CreateDefaultBuilder(args.Args)
-        .ConfigureServices(ConfigureServices)
-        .Build();
+      _host = CreateHost(args.Args);
       await _host.StartAsync();
     }
 
@@ -71,8 +70,21 @@ namespace ZipmodAssistant.App
       _host.Dispose();
     }
 
+    static IHost CreateHost(string[] args) =>
+      Host.CreateDefaultBuilder(args)
+      .ConfigureServices(ConfigureServices)
+      .ConfigureLogging(ConfigureLogging)
+      .Build();
+
+    static void ConfigureLogging(HostBuilderContext context, ILoggingBuilder logging) => logging
+      .ClearProviders()
+      .AddConsole()
+      .AddProjectView()
+      .SetMinimumLevel(LogLevel.Debug);
+
     static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
+      var configuration = context.Configuration.GetSection(nameof(AppConfiguration));
       services
         .AddHostedService<ApplicationHostService>()
         // configure data sources
@@ -81,7 +93,7 @@ namespace ZipmodAssistant.App
         // configure services
         .AddZipmodAssistant()
         .AddTarot()
-        .AddScoped<IPageService, PageService>()
+        .AddSingleton<IPageService, PageService>()
         .AddSingleton<IThemeService, ThemeService>()
         .AddSingleton<INavigationService, NavigationService>()
         .AddSingleton<ITaskBarService, TaskBarService>()
@@ -90,7 +102,7 @@ namespace ZipmodAssistant.App
         // configure view models
         .AddSingleton<IBuildConfiguration, ProjectViewModel>()
         .AddSingleton<ProjectViewModel>()
-        .AddScoped<HomeViewModel>()
+        .AddSingleton<HomeViewModel>()
         .AddSingleton<ContainerViewModel>()
         // configure views
         .AddSingleton<HomePage>()
@@ -98,7 +110,7 @@ namespace ZipmodAssistant.App
         .AddSingleton<ProjectPage>()
         .AddSingleton<SettingsPage>()
         .AddSingleton<IAppConfiguration, AppConfiguration>()
-        .Configure<AppConfiguration>(context.Configuration.GetSection(nameof(AppConfiguration)));
+        .Configure<AppConfiguration>(configuration);
     }
   }
 }

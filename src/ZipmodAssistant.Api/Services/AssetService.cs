@@ -3,6 +3,7 @@ using Aspose.Imaging.ImageOptions;
 using AssetsTools.NET;
 using AssetsTools.NET.Extra;
 using Microsoft.Extensions.FileSystemGlobbing;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,12 +19,12 @@ namespace ZipmodAssistant.Api.Services
 {
   public class AssetService : IAssetService
   {
-    private readonly ILoggerService _logger;
+    private readonly ILogger<IAssetService> _logger;
     private readonly ICardProvider _cardProvider;
 
     private static readonly Regex _mapResourcePath = new(@"abdata(\/|\\)map(\/|\\)scene(\/|\\).+\.unity3d$");
 
-    public AssetService(ILoggerService logger, ICardProvider cardProvider)
+    public AssetService(ILogger<IAssetService> logger, ICardProvider cardProvider)
     {
       _logger = logger;
       _cardProvider = cardProvider;
@@ -46,7 +47,7 @@ namespace ZipmodAssistant.Api.Services
       }
       catch (Exception ex)
       {
-        _logger.Log(ex);
+        _logger.LogError(ex, "An exception occured when compressing {filename}", filename);
         return false;
       }
     }

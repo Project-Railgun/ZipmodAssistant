@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
+using Serilog;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -35,14 +36,18 @@ namespace ZipmodAssistant.App
   /// </summary>
   public partial class App : Application
   {
-    private readonly IServiceProvider _serviceProvider;
     private IHost _host;
 
     public App()
     {
       var services = new ServiceCollection();
-      _serviceProvider = services.BuildServiceProvider();
       AppDomain.CurrentDomain.UnhandledException += UnhandledException;
+      Log.Logger = new LoggerConfiguration()
+        .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
+        .Enrich.FromLogContext()
+        .WriteTo.Console()
+        .CreateLogger();
+      Serilog.Debugging.SelfLog.Enable(Console.Error);
     }
 
     void UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -68,19 +73,31 @@ namespace ZipmodAssistant.App
       // TODO: allow keeping minimized to tray
       await _host.StopAsync();
       _host.Dispose();
+      Log.CloseAndFlush();
     }
 
     static IHost CreateHost(string[] args) =>
       Host.CreateDefaultBuilder(args)
-      .ConfigureServices(ConfigureServices)
-      .ConfigureLogging(ConfigureLogging)
-      .Build();
+        .ConfigureServices(ConfigureServices)
+        .UseSerilog(ConfigureLogging)
+        .Build();
 
-    static void ConfigureLogging(HostBuilderContext context, ILoggingBuilder logging) => logging
-      .ClearProviders()
-      .AddConsole()
-      .AddProjectView()
-      .SetMinimumLevel(LogLevel.Debug);
+    static void ConfigureLogging(HostBuilderContext context, IServiceProvider services, LoggerConfiguration logger) => logger
+      .ReadFrom.Services(services)
+      .Enrich.FromLogContext()
+#if DEBUG
+      .WriteTo.Debug()
+#else
+      .WriteTo.Console()
+#endif
+      .WriteTo.File(
+        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs"),
+        retainedFileCountLimit: 20,
+        shared: true,
+        flushToDiskInterval: TimeSpan.FromSeconds(1)
+      )
+      .WriteTo.InMemory()
+      .WriteTo.Logger(Log.Logger);
 
     static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {

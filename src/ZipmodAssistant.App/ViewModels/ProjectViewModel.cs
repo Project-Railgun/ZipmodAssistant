@@ -216,8 +216,6 @@ namespace ZipmodAssistant.App.ViewModels
       }
     }
 
-    public ObservableCollection<string> LogMessages { get; set; } = new();
-
     public ProjectViewModel(IProjectService projectService)
     {
       _projectService = projectService;

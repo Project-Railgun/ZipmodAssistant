@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,7 +22,9 @@ using Wpf.Ui.Mvvm.Contracts;
 using Wpf.Ui.TaskBar;
 using ZipmodAssistant.Api.Enums;
 using ZipmodAssistant.Api.Interfaces.Services;
+using ZipmodAssistant.App.Extensions;
 using ZipmodAssistant.App.Interfaces.Services;
+using ZipmodAssistant.App.Logging;
 using ZipmodAssistant.App.ViewModels;
 
 namespace ZipmodAssistant.App.Views.Pages
@@ -31,7 +34,7 @@ namespace ZipmodAssistant.App.Views.Pages
   /// </summary>
   public partial class ProjectPage : Page
   {
-    private readonly ILogger<ProjectPage> _logger;
+    private readonly ILogger<ProjectPage>? _logger;
     private readonly IRepositoryService _repositoryService;
     private readonly ISessionService _sessionService;
     private readonly INavigationWindow _navigationWindow;
@@ -54,17 +57,21 @@ namespace ZipmodAssistant.App.Views.Pages
       _repositoryService = repositoryService;
       _sessionService = sessionService;
       _taskBarService = taskBarService;
-      DataContext = viewModel;
+      DataContext = viewModel.SubscribeToInMemorySink(Dispatcher);
       InitializeComponent();
       viewModel.LogMessages.CollectionChanged += (sender, args) =>
       {
         LogMessageScroll.ScrollToBottom();
       };
-      _logger.LogInformation("Initiated logging");
-      _logger.LogInformation(
-        "{name} v{version}",
-        Assembly.GetEntryAssembly().GetName().Name,
-        Assembly.GetEntryAssembly().GetName().Version);
+      if (_logger != null)
+      {
+        _logger.LogInformation("Initiated logging");
+        _logger.LogInformation(
+          "{name} v{version}",
+          Assembly.GetEntryAssembly().GetName().Name,
+          Assembly.GetEntryAssembly().GetName().Version);
+      }
+      
     }
 
     void RemoveGameTagsClicked(object sender, RoutedEventArgs e)

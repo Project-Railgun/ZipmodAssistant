@@ -37,6 +37,7 @@ namespace ZipmodAssistant.App
   public partial class App : Application
   {
     private IHost _host;
+    private const string DB_CONNECTION_STRING = "Data Source = ZipmodAssistant.db";
 
     public App()
     {
@@ -105,7 +106,10 @@ namespace ZipmodAssistant.App
       services
         .AddHostedService<ApplicationHostService>()
         // configure data sources
-        .AddSqlite<ZipmodDbContext>("Data Source = ZipmodAssistant.db")
+        .AddDbContext<ZipmodDbContext>(options =>
+          options.UseSqlite(DB_CONNECTION_STRING),
+          ServiceLifetime.Transient
+        )
 
         // configure services
         .AddZipmodAssistant()

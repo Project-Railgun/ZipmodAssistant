@@ -13,15 +13,16 @@ namespace ZipmodAssistant.Api.Repositories
 {
   public class ZipmodRepository : IZipmodRepository
   {
-    private readonly ZipmodDbContext _dbContext;
+    private readonly IServiceProvider _serviceProvider;
 
-    public ZipmodRepository(ZipmodDbContext dbContext)
+    public ZipmodRepository(IServiceProvider serviceProvider)
     {
-      _dbContext = dbContext;
+      _serviceProvider = serviceProvider;
     }
 
     public async Task<bool> AddZipmodAsync(IZipmod zipmod)
     {
+      var _dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       if (zipmod.Manifest == null || _dbContext.PriorZipmodEntries.Find(zipmod.Manifest.Guid) != null)
       {
         return false;
@@ -33,12 +34,14 @@ namespace ZipmodAssistant.Api.Repositories
 
     public async Task<bool> IsManifestInHistoryAsync(IManifest manifest!!)
     {
+      var _dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       var entry = await _dbContext.PriorZipmodEntries.FindAsync(manifest.Hash);
       return entry != null;
     }
 
     public async Task<bool> IsNewerVersionAvailableAsync(IZipmod zipmod)
     {
+      var _dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       if (zipmod.Manifest == null || _dbContext.PriorZipmodEntries.Find(zipmod.Manifest.Guid) != null)
       {
         return false;
@@ -55,6 +58,7 @@ namespace ZipmodAssistant.Api.Repositories
 
     public async Task<bool> SetCanSkipZipmodAsync(IZipmod zipmod, bool canSkip)
     {
+      var _dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       if (zipmod.Manifest == null)
       {
         return false;
@@ -72,6 +76,7 @@ namespace ZipmodAssistant.Api.Repositories
 
     public async Task<bool> RemoveZipmodAsync(IZipmod zipmod)
     {
+      var _dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       if (zipmod.Manifest == null)
       {
         return false;
@@ -88,6 +93,7 @@ namespace ZipmodAssistant.Api.Repositories
 
     public async Task<bool> UpdateZipmodAsync(IZipmod zipmod)
     {
+      var _dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       if (zipmod.Manifest == null)
       {
         return false;

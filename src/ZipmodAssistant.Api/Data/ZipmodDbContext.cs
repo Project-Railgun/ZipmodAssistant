@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,9 +14,19 @@ namespace ZipmodAssistant.Api.Data
     public DbSet<PriorZipmodEntry> PriorZipmodEntries { get; set; }
     public DbSet<SessionResultEntry> SessionResultEntries { get; set; }
 
-    public ZipmodDbContext(DbContextOptions<ZipmodDbContext> options) : base(options)
+    private readonly ILogger<ZipmodDbContext> _logger;
+
+    public ZipmodDbContext(DbContextOptions<ZipmodDbContext> options, ILogger<ZipmodDbContext> logger) : base(options)
     {
-      Database.EnsureCreated();
+      _logger = logger;
+      try
+      {
+        Database.EnsureCreated();
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "An error occured building the database");
+      }
     }
   }
 }

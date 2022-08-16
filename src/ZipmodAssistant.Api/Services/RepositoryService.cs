@@ -150,6 +150,7 @@ namespace ZipmodAssistant.Api.Services
           if (await _zipmodRepository.IsNewerVersionAvailableAsync(zipmod))
           {
             _logger.LogInformation("{manifestGuid} has a newer version locally, skipping", zipmod.Manifest.Guid);
+            return;
           }
           UpdateManifests(zipmod, repository.Configuration);
           var zipmodFiles = Directory.EnumerateFiles(zipmod.WorkingDirectory, "*.*", SearchOption.AllDirectories);
@@ -211,9 +212,10 @@ namespace ZipmodAssistant.Api.Services
               "treated",
               zipmodType.ToString()
             );
-          var outputFilename = Path.Join(
-              outputDirectory,
-              TextUtilities.ResolveFilenameFromManifest(zipmod.Manifest));
+          var newFilename = repository.Configuration.SkipRenaming
+            ? zipmod.FileInfo.Name
+            : TextUtilities.ResolveFilenameFromManifest(zipmod.Manifest);
+          var outputFilename = Path.Join(outputDirectory, newFilename);
           Directory.CreateDirectory(outputDirectory);
           if (File.Exists(outputFilename))
           {
@@ -235,17 +237,18 @@ namespace ZipmodAssistant.Api.Services
           {
             _logger.LogError("Failed to update history of {manifestGuid}", zipmod.Manifest.Guid);
           }
-          if (!repository.Configuration.SkipCleanup)
-          {
-            Directory.Delete(zipmod.WorkingDirectory, true);
-            _logger.LogInformation("Cleaned {cacheDirectory}", repository.Configuration.CacheDirectory);
-          }
+          
         }
         catch (Exception ex)
         {
           _logger.LogError(ex, "Repository failed");
         }
       });
+      if (!repository.Configuration.SkipCleanup)
+      {
+        Directory.Delete(repository.Configuration.CacheDirectory, true);
+        _logger.LogInformation("Cleaned {cacheDirectory}", repository.Configuration.CacheDirectory);
+      }
       var endTime = DateTime.Now;
       _logger.LogInformation("Processing complete, took {time}ms", (endTime - startTime).TotalMilliseconds);
     }

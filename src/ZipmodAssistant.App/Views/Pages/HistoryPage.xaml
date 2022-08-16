@@ -3,12 +3,39 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:ZipmodAssistant.App.Views.Pages"
+      xmlns:viewModels="clr-namespace:ZipmodAssistant.App.ViewModels"
+      xmlns:converters="clr-namespace:ZipmodAssistant.App.Converters"
+      xmlns:wpfui="http://schemas.lepo.co/wpfui/2022/xaml"
       mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="History">
-
-    <Grid>
-        
-    </Grid>
+      d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance Type=viewModels:HistoryViewModel}"
+      Title="History"
+      Loaded="OnPageLoaded">
+  <Page.Resources>
+    <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibility" True="Visible" False="Collapsed" />
+    <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityInverted" True="Collapsed" False="Visible" />
+  </Page.Resources>
+  <Grid>
+    <wpfui:ProgressRing IsIndeterminate="True" Visibility="{Binding Loading, Converter={StaticResource BooleanToVisibility}}" />
+    <ScrollViewer Visibility="{Binding Loading, Converter={StaticResource BooleanToVisibilityInverted}}">
+      <VirtualizingStackPanel>
+        <ItemsControl ItemsSource="{Binding Zipmods}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <wpfui:CardControl Margin="16,8" Padding="32,12">
+                <wpfui:CardControl.Header>
+                  <StackPanel>
+                    <TextBlock Text="{Binding Guid}" />
+                    <TextBlock Text="{Binding Version}" Opacity="0.5" Margin="0,8,0,0"/>
+                  </StackPanel>
+                </wpfui:CardControl.Header>
+                <wpfui:CardControl.Content>
+                  <wpfui:ToggleSwitch IsChecked="{Binding CanSkip}" Checked="OnZipmodToggled" Unchecked="OnZipmodToggled" />
+                </wpfui:CardControl.Content>
+              </wpfui:CardControl>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </VirtualizingStackPanel>
+    </ScrollViewer>
+  </Grid>
 </Page>

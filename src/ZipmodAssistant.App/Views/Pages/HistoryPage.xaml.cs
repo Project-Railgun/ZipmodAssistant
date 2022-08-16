@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Wpf.Ui.Controls;
+using ZipmodAssistant.Api.Data.DataModels;
+using ZipmodAssistant.App.ViewModels;
 
 namespace ZipmodAssistant.App.Views.Pages
 {
@@ -20,9 +24,31 @@ namespace ZipmodAssistant.App.Views.Pages
   /// </summary>
   public partial class HistoryPage : Page
   {
-    public HistoryPage()
+    private readonly ILogger<HistoryPage> _logger;
+
+    public HistoryViewModel ViewModel => (HistoryViewModel)DataContext;
+
+    public HistoryPage(HistoryViewModel viewModel, ILogger<HistoryPage> logger)
     {
       InitializeComponent();
+      DataContext = viewModel;
+      _logger = logger;
+    }
+
+    private async void OnPageLoaded(object sender, RoutedEventArgs e)
+    {
+      await ViewModel.LoadZipmodsAsync();
+    }
+
+    private async void OnZipmodToggled(object sender, RoutedEventArgs e)
+    {
+      if (sender is ToggleSwitch toggleSwitch)
+      {
+        if (toggleSwitch.DataContext is PriorZipmodEntry entry)
+        {
+          await ViewModel.SetCanSkipAsync(entry.Guid, toggleSwitch.IsChecked ?? false);
+        }
+      }
     }
   }
 }

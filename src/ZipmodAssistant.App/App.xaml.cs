@@ -125,6 +125,7 @@ namespace ZipmodAssistant.App
         .AddSingleton<ProjectViewModel>()
         .AddSingleton<HomeViewModel>()
         .AddSingleton<ContainerViewModel>()
+        .AddSingleton<HistoryViewModel>()
         // configure views
         .AddSingleton<HomePage>()
         .AddSingleton<HistoryPage>()

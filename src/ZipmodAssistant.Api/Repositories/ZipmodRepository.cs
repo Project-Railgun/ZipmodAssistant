@@ -20,33 +20,40 @@ namespace ZipmodAssistant.Api.Repositories
       _serviceProvider = serviceProvider;
     }
 
+    public async Task<IEnumerable<PriorZipmodEntry>> GetZipmodsAsync()
+    {
+      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      var entries = dbContext.PriorZipmodEntries.ToList();
+      return entries;
+    }
+
     public async Task<bool> AddZipmodAsync(IZipmod zipmod)
     {
-      var _dbContext = _serviceProvider.GetService<ZipmodDbContext>();
-      if (zipmod.Manifest == null || _dbContext.PriorZipmodEntries.Find(zipmod.Manifest.Guid) != null)
+      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      if (zipmod.Manifest == null || dbContext.PriorZipmodEntries.Find(zipmod.Manifest.Guid) != null)
       {
         return false;
       }
-      var entry = await _dbContext.PriorZipmodEntries.AddAsync(GetPriorZipmodEntryFromZipmod(zipmod));
-      await _dbContext.SaveChangesAsync();
+      await dbContext.PriorZipmodEntries.AddAsync(GetPriorZipmodEntryFromZipmod(zipmod));
+      await dbContext.SaveChangesAsync();
       return true;
     }
 
     public async Task<bool> IsManifestInHistoryAsync(IManifest manifest!!)
     {
-      var _dbContext = _serviceProvider.GetService<ZipmodDbContext>();
-      var entry = await _dbContext.PriorZipmodEntries.FindAsync(manifest.Hash);
+      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      var entry = await dbContext.PriorZipmodEntries.FindAsync(manifest.Hash);
       return entry != null;
     }
 
     public async Task<bool> IsNewerVersionAvailableAsync(IZipmod zipmod)
     {
-      var _dbContext = _serviceProvider.GetService<ZipmodDbContext>();
-      if (zipmod.Manifest == null || _dbContext.PriorZipmodEntries.Find(zipmod.Manifest.Guid) != null)
+      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      if (zipmod.Manifest == null || dbContext.PriorZipmodEntries.Find(zipmod.Manifest.Guid) != null)
       {
         return false;
       }
-      var entry = await _dbContext.PriorZipmodEntries.FindAsync(zipmod.Hash);
+      var entry = await dbContext.PriorZipmodEntries.FindAsync(zipmod.Hash);
       if (entry == null)
       {
         return false;
@@ -56,50 +63,46 @@ namespace ZipmodAssistant.Api.Repositories
       return lastVersion > currentVersion;
     }
 
-    public async Task<bool> SetCanSkipZipmodAsync(IZipmod zipmod, bool canSkip)
+    public async Task<bool> SetCanSkipZipmodAsync(string guid, bool canSkip)
     {
-      var _dbContext = _serviceProvider.GetService<ZipmodDbContext>();
-      if (zipmod.Manifest == null)
-      {
-        return false;
-      }
-      var entry = await _dbContext.PriorZipmodEntries.FindAsync(zipmod.Hash);
+      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      var entry = await dbContext.PriorZipmodEntries.FindAsync(guid);
       if (entry == null)
       {
         return false;
       }
       entry.CanSkip = canSkip;
-      _dbContext.PriorZipmodEntries.Update(entry);
-      await _dbContext.SaveChangesAsync();
+      dbContext.PriorZipmodEntries.Update(entry);
+      await dbContext.SaveChangesAsync();
       return true;
     }
 
     public async Task<bool> RemoveZipmodAsync(IZipmod zipmod)
     {
-      var _dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       if (zipmod.Manifest == null)
       {
         return false;
       }
-      var entry = await _dbContext.PriorZipmodEntries.FindAsync(zipmod.Hash);
+      var entry = await dbContext.PriorZipmodEntries.FindAsync(zipmod.Hash);
       if (entry == null)
       {
         return false;
       }
-      _dbContext.PriorZipmodEntries.Remove(entry);
-      await _dbContext.SaveChangesAsync();
+      dbContext.PriorZipmodEntries.Remove(entry);
+      await dbContext.SaveChangesAsync();
       return true;
     }
 
     public async Task<bool> UpdateZipmodAsync(IZipmod zipmod)
     {
-      var _dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       if (zipmod.Manifest == null)
       {
         return false;
       }
-      _dbContext.PriorZipmodEntries.Update(GetPriorZipmodEntryFromZipmod(zipmod));
-      await _dbContext.SaveChangesAsync();
+      dbContext.PriorZipmodEntries.Update(GetPriorZipmodEntryFromZipmod(zipmod));
+      await dbContext.SaveChangesAsync();
       return true;
     }
 

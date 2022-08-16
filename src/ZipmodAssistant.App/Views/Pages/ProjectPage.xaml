@@ -38,7 +38,7 @@
             <RowDefinition Height="32" />
             <RowDefinition Height="*" />
             <RowDefinition Height="32" />
-            <RowDefinition Height="48" />
+            <RowDefinition Height="40" />
             <RowDefinition Height="*" />
           </Grid.RowDefinitions>
           <Grid.ColumnDefinitions>
@@ -48,19 +48,20 @@
 
           <Label Grid.Row="0" FontWeight="DemiBold">Options</Label>
           <StackPanel Grid.Column="0" Grid.Row="1" Margin="0,0,32,0">
-            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding RandomizeCab}">Randomize Cab</wpfui:ToggleSwitch>
-            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipRenaming}">Skip Renaming</wpfui:ToggleSwitch>
+            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding RandomizeCab}">Randomize CAB</wpfui:ToggleSwitch>
+            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipRenaming}">Skip renaming</wpfui:ToggleSwitch>
+            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipKnownMods}">Skip known mods</wpfui:ToggleSwitch>
           </StackPanel>
           <StackPanel Grid.Column="1" Grid.Row="1">
-            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipCompression}">Skip Compression</wpfui:ToggleSwitch>
-            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipCleanup}">Skip Junk Cleanup</wpfui:ToggleSwitch>
+            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipCompression}">Skip compression</wpfui:ToggleSwitch>
+            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipCleanup}">Skip junk cleanup</wpfui:ToggleSwitch>
           </StackPanel>
 
           <StackPanel Grid.Row="3" Grid.ColumnSpan="2">
             <Label FontWeight="DemiBold">Game tag</Label>
             <Label FontWeight="ExtraLight">Leave all unchecked to not change</Label>
           </StackPanel>
-          <StackPanel Grid.Row="4" Grid.Column="0">
+          <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,0,16">
             <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsKk}">KK</wpfui:ToggleSwitch>
             <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsKks}">KKS</wpfui:ToggleSwitch>
             <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding IsEc}">EC</wpfui:ToggleSwitch>
@@ -76,7 +77,7 @@
       </StackPanel>
     </WrapPanel>
     
-    <ScrollViewer Height="286" VerticalScrollBarVisibility="Visible" x:Name="LogMessageScroll">
+    <ScrollViewer Height="280" VerticalScrollBarVisibility="Visible" x:Name="LogMessageScroll">
       <Grid>
         <ItemsControl ItemsSource="{Binding LogMessages}" Padding="16" HorizontalAlignment="Stretch">
           <ItemsControl.Background>

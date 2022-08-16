@@ -21,7 +21,9 @@ namespace ZipmodAssistant.App.Extensions
       IFormatProvider? formatProvider = null) =>
         logger
           .Sink(new InMemorySink(formatProvider))
-          .MinimumLevel.Override("Microsoft", LogEventLevel.Warning);
+          .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+          .MinimumLevel.Override("System", LogEventLevel.Information)
+          .MinimumLevel.Override("ZipmodAssistant", LogEventLevel.Debug);
 
     public static ViewModel SubscribeToInMemorySink(
       this ViewModel viewModel, Dispatcher dispatcher)

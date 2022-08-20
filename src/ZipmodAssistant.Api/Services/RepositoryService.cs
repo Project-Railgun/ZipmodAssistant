@@ -91,6 +91,10 @@ namespace ZipmodAssistant.Api.Services
             _logger.LogDebug("{manifestGuid} is a known mod, skipping", manifest.Guid);
             continue;
           }
+          if (string.IsNullOrEmpty(manifest.Author))
+          {
+            _logger.LogDebug("{manifestGuid} has an empty author, skipping", manifest.Guid);
+          }
           var tempDirectory = Path.Join(configuration.CacheDirectory, manifest.Guid);
           var zipmod = new Zipmod(fileInfo, tempDirectory, manifest);
           if (zipmod != default)

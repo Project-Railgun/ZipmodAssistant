@@ -48,12 +48,6 @@ namespace ZipmodAssistant.App.Services
 
     public async Task StartAsync(CancellationToken cancelToken)
     {
-      var startTime = DateTime.Now;
-      if (!Directory.Exists("logs"))
-      {
-        Directory.CreateDirectory("logs");
-      }
-      
       _navigationService.SetPageService(_pageService);
       if (!Application.Current.Windows.OfType<Container>().Any())
       {

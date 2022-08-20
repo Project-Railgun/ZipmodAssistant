@@ -64,6 +64,11 @@ namespace ZipmodAssistant.App
 
     async void OnStartup(object sender, StartupEventArgs args)
     {
+      if (!Directory.Exists("logs"))
+      {
+        Directory.CreateDirectory("logs");
+      }
+
       _host = CreateHost(args.Args);
       await _host.StartAsync();
     }
@@ -91,7 +96,7 @@ namespace ZipmodAssistant.App
       .WriteTo.Console()
 #endif
       .WriteTo.File(
-        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs"),
+        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", $"log_{DateTime.Now:MM_dd_yyyy__hh_mm_ss}.txt"),
         retainedFileCountLimit: 20,
         shared: true,
         flushToDiskInterval: TimeSpan.FromSeconds(1)

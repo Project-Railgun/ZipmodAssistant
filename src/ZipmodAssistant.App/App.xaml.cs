@@ -64,7 +64,6 @@ namespace ZipmodAssistant.App
 
     async void OnStartup(object sender, StartupEventArgs args)
     {
-      AppDomain.CurrentDomain.UnhandledException += UnhandledException;
       _host = CreateHost(args.Args);
       await _host.StartAsync();
     }

@@ -41,7 +41,7 @@ namespace ZipmodAssistant.App.Models
 
     public IEnumerable<TargetGame> Games { get; set; } = new List<TargetGame>();
 
-    public static async Task<ProjectConfiguration> LoadAsync(string filename!!)
+    public static async Task<ProjectConfiguration> LoadAsync(string filename)
     {
       using var fs = File.OpenRead(filename);
       var project = await JsonSerializer.DeserializeAsync<ProjectConfiguration>(fs, _serializerOptions);

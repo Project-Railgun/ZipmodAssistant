@@ -45,7 +45,7 @@ namespace ZipmodAssistant.App.Logging
       }
     }
 
-    public static IEnumerable<string> Subscribe(Action<IEnumerable<string>> onEmit!!)
+    public static IEnumerable<string> Subscribe(Action<IEnumerable<string>> onEmit)
     {
       var currentItems = _events.ToArray();
       _events.Clear();

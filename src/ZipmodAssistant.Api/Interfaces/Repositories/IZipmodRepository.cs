@@ -18,7 +18,11 @@ namespace ZipmodAssistant.Api.Interfaces.Repositories
 
     Task<bool> AddZipmodAsync(IZipmod zipmod);
 
+    Task<bool> RemoveZipmodAsync(string guid);
+
     Task<bool> RemoveZipmodAsync(IZipmod zipmod);
+
+    Task<int> RemoveZipmodsAsync(params string[] guids);
 
     Task<bool> UpdateZipmodAsync(IZipmod zipmod);
 

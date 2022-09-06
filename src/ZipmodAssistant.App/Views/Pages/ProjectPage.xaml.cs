@@ -18,6 +18,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Wpf.Ui.Controls;
 using Wpf.Ui.Mvvm.Contracts;
 using Wpf.Ui.TaskBar;
 using ZipmodAssistant.Api.Enums;
@@ -32,13 +33,14 @@ namespace ZipmodAssistant.App.Views.Pages
   /// <summary>
   /// Interaction logic for Home.xaml
   /// </summary>
-  public partial class ProjectPage : Page
+  public partial class ProjectPage : UiPage
   {
     private readonly ILogger<ProjectPage>? _logger;
     private readonly IRepositoryService _repositoryService;
     private readonly ISessionService _sessionService;
     private readonly INavigationWindow _navigationWindow;
     private readonly ITaskBarService _taskBarService;
+    private readonly IProjectService _projectService;
 
     ProjectViewModel ViewModel => (ProjectViewModel)DataContext;
     bool _hasUnsavedChanges = false;
@@ -57,6 +59,7 @@ namespace ZipmodAssistant.App.Views.Pages
       _repositoryService = repositoryService;
       _sessionService = sessionService;
       _taskBarService = taskBarService;
+      _projectService = projectService;
       DataContext = viewModel.SubscribeToInMemorySink(Dispatcher);
       InitializeComponent();
       viewModel.LogMessages.CollectionChanged += (sender, args) =>
@@ -71,7 +74,10 @@ namespace ZipmodAssistant.App.Views.Pages
           Assembly.GetEntryAssembly().GetName().Name,
           Assembly.GetEntryAssembly().GetName().Version);
       }
-      
+      Loaded += (_, _) =>
+      {
+        viewModel.ReloadProject();
+      };
     }
 
     void RemoveGameTagsClicked(object sender, RoutedEventArgs e)

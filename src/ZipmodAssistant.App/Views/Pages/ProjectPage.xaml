@@ -1,4 +1,4 @@
-﻿<Page x:Class="ZipmodAssistant.App.Views.Pages.ProjectPage"
+﻿<wpfui:UiPage x:Class="ZipmodAssistant.App.Views.Pages.ProjectPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -107,4 +107,4 @@
       <wpfui:Button Icon="Delete24" Cursor="Hand" ToolTip="Clear logs" Click="ClearLogMessagesClicked" />
     </WrapPanel>
   </StackPanel>
-</Page>
+</wpfui:UiPage>

@@ -16,13 +16,14 @@ using System.Windows.Shapes;
 using Wpf.Ui.Controls;
 using ZipmodAssistant.Api.Data.DataModels;
 using ZipmodAssistant.App.ViewModels;
+using Button = Wpf.Ui.Controls.Button;
 
 namespace ZipmodAssistant.App.Views.Pages
 {
   /// <summary>
   /// Interaction logic for History.xaml
   /// </summary>
-  public partial class HistoryPage : Page
+  public partial class HistoryPage : UiPage
   {
     private readonly ILogger<HistoryPage> _logger;
 
@@ -35,12 +36,12 @@ namespace ZipmodAssistant.App.Views.Pages
       _logger = logger;
     }
 
-    private async void OnPageLoaded(object sender, RoutedEventArgs e)
+    async void OnPageLoaded(object sender, RoutedEventArgs e)
     {
       await ViewModel.LoadZipmodsAsync();
     }
 
-    private async void OnZipmodToggled(object sender, RoutedEventArgs e)
+    async void OnZipmodToggled(object sender, RoutedEventArgs e)
     {
       if (sender is ToggleSwitch toggleSwitch)
       {
@@ -49,6 +50,29 @@ namespace ZipmodAssistant.App.Views.Pages
           await ViewModel.SetCanSkipAsync(entry.Guid, toggleSwitch.IsChecked ?? false);
         }
       }
+    }
+
+    async void OnDeleteModClicked(object sender, RoutedEventArgs e)
+    {
+      var result = await ConfirmDeleteDialog.ShowAndWaitAsync();
+      if (result == Wpf.Ui.Controls.Interfaces.IDialogControl.ButtonPressed.Right && sender is Button button)
+      {
+        if (button.DataContext is PriorZipmodEntry entry)
+        {
+          await ViewModel.DeleteModFromHistoryAsync(entry.Guid);
+        }
+      }
+      ConfirmDeleteDialog.Hide();
+    }
+
+    async void OnDeleteAllClicked(object sender, RoutedEventArgs e)
+    {
+      var result = await ConfirmDeleteDialog.ShowAndWaitAsync();
+      if (result == Wpf.Ui.Controls.Interfaces.IDialogControl.ButtonPressed.Right && sender is Button button)
+      {
+        await ViewModel.DeleteAllAsync();
+      }
+      ConfirmDeleteDialog.Hide();
     }
   }
 }

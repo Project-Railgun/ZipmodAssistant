@@ -54,5 +54,22 @@ namespace ZipmodAssistant.App.ViewModels
         throw new ArgumentException("Zipmod not found with that GUID", nameof(zipmodGuid));
       }
     }
+
+    public async Task DeleteModFromHistoryAsync(string zipmodGuid)
+    {
+      var result = await _repository.RemoveZipmodAsync(zipmodGuid);
+      if (!result)
+      {
+        throw new ArgumentException("Zipmod not found with that GUID", nameof(zipmodGuid));
+      }
+      Zipmods = Zipmods.Where(zipmod => zipmod.Guid != zipmodGuid);
+    }
+
+    public async Task DeleteAllAsync()
+    {
+      var guids = _zipmods.Select(zipmod => zipmod.Guid).ToArray();
+      await _repository.RemoveZipmodsAsync(guids);
+      Zipmods = Array.Empty<PriorZipmodEntry>();
+    }
   }
 }

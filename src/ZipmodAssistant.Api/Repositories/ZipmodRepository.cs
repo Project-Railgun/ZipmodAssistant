@@ -94,6 +94,28 @@ namespace ZipmodAssistant.Api.Repositories
       return true;
     }
 
+    public async Task<bool> RemoveZipmodAsync(string guid)
+    {
+      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      var entry = await dbContext.PriorZipmodEntries.FindAsync(guid);
+      if (entry == null)
+      {
+        return false;
+      }
+      dbContext.PriorZipmodEntries.Remove(entry);
+      await dbContext.SaveChangesAsync();
+      return true;
+    }
+
+    public async Task<int> RemoveZipmodsAsync(params string[] guids)
+    {
+      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      var toRemove = (await GetZipmodsAsync()).Where(zipmod => guids.Contains(zipmod.Guid));
+      dbContext.PriorZipmodEntries.RemoveRange(toRemove);
+      var deletedCount = await dbContext.SaveChangesAsync();
+      return deletedCount;
+    }
+
     public async Task<bool> UpdateZipmodAsync(IZipmod zipmod)
     {
       var dbContext = _serviceProvider.GetService<ZipmodDbContext>();

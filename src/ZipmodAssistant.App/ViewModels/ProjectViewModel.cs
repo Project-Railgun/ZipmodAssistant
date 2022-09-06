@@ -16,6 +16,7 @@ using ZipmodAssistant.Api.Interfaces.Services;
 using ZipmodAssistant.App.Interfaces.Models;
 using ZipmodAssistant.App.Interfaces.Services;
 using ZipmodAssistant.App.Models;
+using ZipmodAssistant.App.Services;
 using ZipmodAssistant.Shared.Enums;
 
 namespace ZipmodAssistant.App.ViewModels
@@ -23,11 +24,22 @@ namespace ZipmodAssistant.App.ViewModels
   public class ProjectViewModel : ViewModel, IProjectConfiguration
   {
     private readonly IProjectService _projectService;
-    private readonly IProjectConfiguration _project;
 
+    private IProjectConfiguration _project;
     private bool _hasChanges = false;
     private bool _isBuilding = false;
+    private bool _isPersisted = false;
     private int _buildProgress = 0;
+
+    public IProjectConfiguration Project
+    {
+      get => _project;
+      set
+      {
+        _project = value;
+        OnPropertyChanged();
+      }
+    }
 
     public string? Filename
     {
@@ -39,7 +51,15 @@ namespace ZipmodAssistant.App.ViewModels
       }
     }
 
-    public bool IsPersisted => Filename != null;
+    public bool IsPersisted
+    {
+      get => _isPersisted;
+      set
+      {
+        _isPersisted = value;
+        OnPropertyChanged();
+      }
+    }
 
     public bool IsBuilding
     {
@@ -236,6 +256,26 @@ namespace ZipmodAssistant.App.ViewModels
           Games = new List<TargetGame>(),
         };
       }
+    }
+
+    public void ReloadProject()
+    {
+      Project = _projectService.GetCurrentProject();
+      if (Project == null)
+      {
+        return;
+      }
+      IsPersisted = true;
+      Filename = _project.Filename;
+      InputDirectory = _project.InputDirectory;
+      OutputDirectory = _project.OutputDirectory;
+      CacheDirectory = _project.CacheDirectory;
+      RandomizeCab = _project.RandomizeCab;
+      SkipRenaming = _project.SkipRenaming;
+      SkipCleanup = _project.SkipCleanup;
+      SkipCompression = _project.SkipCompression;
+      SkipKnownMods = _project.SkipKnownMods;
+      Games = _project.Games;
     }
 
     public async Task SaveAsync()

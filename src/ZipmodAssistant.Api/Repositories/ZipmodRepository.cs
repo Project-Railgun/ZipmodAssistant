@@ -42,7 +42,7 @@ namespace ZipmodAssistant.Api.Repositories
     public async Task<bool> IsManifestInHistoryAsync(IManifest manifest)
     {
       var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
-      var entry = await dbContext.PriorZipmodEntries.FindAsync(manifest.Hash);
+      var entry = await dbContext.PriorZipmodEntries.FindAsync(manifest.Guid);
       return entry != null;
     }
 

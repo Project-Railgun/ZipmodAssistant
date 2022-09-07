@@ -8,7 +8,7 @@ namespace ZipmodAssistant.Api.Interfaces.Models
   public interface IZipmod
   {
     /// <summary>
-    ///   The file this zipmod is found at
+    ///   The file this zipmod is found at. If the zipmod is not an archive, it will be the manifest.xml
     /// </summary>
     FileInfo FileInfo { get; }
 

@@ -69,7 +69,7 @@ namespace ZipmodAssistant.Tarot.Utilities
       KKPSP_MARKER => TargetGame.KoikatsuPartySpecialPatch,
       KKS_MARKER => TargetGame.KoikatsuSunshine,
       EC_MARKER => TargetGame.EmotionCreators,
-      AIS_MARKER => TargetGame.EmotionCreators,
+      AIS_MARKER => TargetGame.AiSyoujyo,
       _ => TargetGame.Unknown,
     };
 

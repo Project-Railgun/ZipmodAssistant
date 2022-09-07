@@ -10,5 +10,6 @@
     ResourceSkipped,
     ResourceDeleted,
     ZipmodCreated,
+    ResourceCopied,
   }
 }

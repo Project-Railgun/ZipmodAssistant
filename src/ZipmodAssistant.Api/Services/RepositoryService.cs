@@ -88,7 +88,7 @@ namespace ZipmodAssistant.Api.Services
           {
             continue;
           }
-          
+
         }
         catch (Exception ex)
         {
@@ -106,19 +106,7 @@ namespace ZipmodAssistant.Api.Services
       {
         zipmod.Manifest.Games = buildConfiguration.Games.Select(g => g.ToString()).ToArray();
       }
-      else if (zipmod.Manifest.Games == null || zipmod.Manifest.Games.Length == 0)
-      {
-        zipmod.Manifest.Games = new[]
-        {
-          TargetGame.Koikatu.ToString(),
-          TargetGame.KoikatsuParty.ToString(),
-          TargetGame.KoikatsuPartySpecialPatch.ToString(),
-          TargetGame.KoikatsuSunshine.ToString(),
-          TargetGame.EmotionCreators.ToString(),
-          TargetGame.AiSyoujyo.ToString(),
-          TargetGame.HoneySelect2.ToString(),
-        };
-      }
+
       File.WriteAllText(zipmod.GetPath("manifest.xml"), $"""
         <!-- Generated with ZipmodAssistant -->
         {zipmod.Manifest}
@@ -138,7 +126,7 @@ namespace ZipmodAssistant.Api.Services
       var treatedDirectory = Path.Join(repository.Configuration.OutputDirectory, "Treated", "Games");
       var skippedDirectory = Path.Join(repository.Configuration.OutputDirectory, "Skipped");
       var originalDirectory = Path.Join(repository.Configuration.OutputDirectory, "Original");
-      
+
       await Parallel.ForEachAsync(repository, async (zipmod, cancelToken) =>
       {
         try
@@ -158,7 +146,7 @@ namespace ZipmodAssistant.Api.Services
             ? zipmod.FileInfo.Name
             : TextUtilities.ResolveFilenameFromManifest(zipmod.Manifest);
           var tempZipFilename = Path.Join(repository.Configuration.CacheDirectory, newFilename);
-          
+
 
           // this has to get called after extracted to the cache directory so we can scan for zipmod type
           if (await _zipmodRepository.IsNewerVersionAvailableAsync(zipmod))
@@ -168,11 +156,20 @@ namespace ZipmodAssistant.Api.Services
             return;
           }
           UpdateManifests(zipmod, repository.Configuration);
-          var gameDirectories = zipmod.Manifest.Games.Select(game =>
-            Path.Join(
-              treatedDirectory,
-              game.ToString(),
-              zipmodType.ToString()));
+          IEnumerable<string> gameDirectories;
+          if (zipmod.Manifest.Games?.Length > 0)
+          {
+            gameDirectories = zipmod.Manifest.Games.Select(game =>
+              Path.Join(
+                treatedDirectory,
+                game.ToString(),
+                zipmodType.ToString()));
+          }
+          else
+          {
+            gameDirectories = new[] { Path.Join(treatedDirectory, "None", zipmodType.ToString()) };
+          }
+
           var looseFileDirectories = gameDirectories.Select(dir => Path.Join(dir, "Loose Images")).ToArray();
           var zipmodFiles = Directory.EnumerateFiles(zipmod.WorkingDirectory, "*.*", SearchOption.AllDirectories);
           await Parallel.ForEachAsync(zipmodFiles, async (file, cancelToken) =>
@@ -217,7 +214,7 @@ namespace ZipmodAssistant.Api.Services
                   {
                     var didCompress = await _assetService.CompressUnityResxAsync(repository.Configuration, file);
                     await _sessionService.CommitResultAsync(new SessionResult(zipmod, file, didCompress ? SessionResultType.ResourceCompressed : SessionResultType.NoChange));
-                    
+
                   });
                   _logger.LogDebug("Compression of {file} took {time}ms", file, compressionDuration.TotalMilliseconds);
                 }
@@ -241,14 +238,18 @@ namespace ZipmodAssistant.Api.Services
             }
           });
 
-          
+
 
           using var archive = ZipArchive.Create();
           archive.AddAllFromDirectory(zipmod.WorkingDirectory);
           archive.SaveTo(tempZipFilename, CompressionType.None);
           var tempZipFileInfo = new FileInfo(tempZipFilename);
           // save to temp zipfile to prepare copying
-          tempZipFileInfo.CopyTo(gameDirectories, true);
+          var outputtedZipFiles = tempZipFileInfo.CopyTo(gameDirectories, true);
+          foreach (var zipFile in outputtedZipFiles)
+          {
+            await _sessionService.CommitResultAsync(new SessionResult(zipmod, zipFile, SessionResultType.ResourceCopied));
+          }
 
           // await _sessionService.CommitResultAsync(new SessionResult(zipmod, outputFilename, SessionResultType.ZipmodCreated));
           if (await _zipmodRepository.AddZipmodAsync(zipmod))
@@ -263,7 +264,7 @@ namespace ZipmodAssistant.Api.Services
           {
             _logger.LogError("Failed to update history of {manifestGuid}", zipmod.Manifest.Guid);
           }
-          
+
         }
         catch (Exception ex)
         {

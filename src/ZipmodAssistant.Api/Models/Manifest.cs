@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -64,9 +65,19 @@ namespace ZipmodAssistant.Api.Models
 
     public static async Task<Manifest> ReadFromStreamAsync(Stream _stream)
     {
-      var buffer = new byte[_stream.Length];
-      await _stream.ReadAsync(buffer);
-      var stream = new MemoryStream(buffer);
+      byte[] buffer;
+      try
+      {
+        buffer = new byte[_stream.Length];
+      }
+      catch (NotSupportedException)
+      {
+        // this should be a reasonable amount, hopefully not too many are using this but it should be fine
+        using var rentedBuffer = MemoryPool<byte>.Shared.Rent(1024 * 128);
+        buffer = rentedBuffer.Memory.ToArray();
+      }
+      var bytesRead = await _stream.ReadAsync(buffer);
+      var stream = new MemoryStream(buffer[..bytesRead]);
       var serializer = new XmlSerializer(typeof(Manifest));
       var deserialized = serializer.Deserialize(stream);
       if (deserialized is Manifest manifest)

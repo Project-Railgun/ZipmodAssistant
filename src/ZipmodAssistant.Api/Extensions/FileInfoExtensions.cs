@@ -30,19 +30,19 @@
       fileInfo.MoveTo(destination, overwrite);
     }
 
-    public static void CopyTo(this FileInfo fileInfo, IEnumerable<string> directories) =>
+    public static IEnumerable<string> CopyTo(this FileInfo fileInfo, IEnumerable<string> directories) =>
       CopyTo(fileInfo, directories, false);
 
-    public static void CopyTo(this FileInfo fileInfo, IEnumerable<string> directories, bool overwrite)
-    {
-      foreach (var directory in directories)
+    public static IEnumerable<string> CopyTo(this FileInfo fileInfo, IEnumerable<string> directories, bool overwrite) =>
+      directories.Select((directory) =>
       {
         if (!Directory.Exists(directory))
         {
           Directory.CreateDirectory(directory);
         }
-        fileInfo.CopyTo(Path.Join(directory, fileInfo.Name), overwrite);
-      }
-    }
+        var targetPath = Path.Join(directory, fileInfo.Name);
+        fileInfo.CopyTo(targetPath, overwrite);
+        return targetPath;
+      });
   }
 }

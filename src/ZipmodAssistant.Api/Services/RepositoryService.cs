@@ -106,7 +106,7 @@ namespace ZipmodAssistant.Api.Services
       {
         zipmod.Manifest.Games = buildConfiguration.Games.Select(g => g.ToString()).ToArray();
       }
-      else
+      else if (zipmod.Manifest.Games == null || zipmod.Manifest.Games.Length == 0)
       {
         zipmod.Manifest.Games = new[]
         {

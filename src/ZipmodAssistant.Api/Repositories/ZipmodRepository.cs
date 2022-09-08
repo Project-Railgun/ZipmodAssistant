@@ -22,14 +22,14 @@ namespace ZipmodAssistant.Api.Repositories
 
     public async Task<IEnumerable<PriorZipmodEntry>> GetZipmodsAsync()
     {
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      using var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       var entries = dbContext.PriorZipmodEntries.ToList();
       return entries;
     }
 
     public async Task<bool> AddZipmodAsync(IZipmod zipmod)
     {
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      using var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       if (zipmod.Manifest == null || dbContext.PriorZipmodEntries.Find(zipmod.Manifest.Guid) != null)
       {
         return false;
@@ -41,14 +41,14 @@ namespace ZipmodAssistant.Api.Repositories
 
     public async Task<bool> IsManifestInHistoryAsync(IManifest manifest)
     {
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      using var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       var entry = await dbContext.PriorZipmodEntries.FindAsync(manifest.Guid);
       return entry != null;
     }
 
     public async Task<bool> IsNewerVersionAvailableAsync(IZipmod zipmod)
     {
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      using var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       if (zipmod.Manifest == null || dbContext.PriorZipmodEntries.Find(zipmod.Manifest.Guid) != null)
       {
         return false;
@@ -65,7 +65,7 @@ namespace ZipmodAssistant.Api.Repositories
 
     public async Task<bool> SetCanSkipZipmodAsync(string guid, bool canSkip)
     {
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      using var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       var entry = await dbContext.PriorZipmodEntries.FindAsync(guid);
       if (entry == null)
       {
@@ -79,7 +79,7 @@ namespace ZipmodAssistant.Api.Repositories
 
     public async Task<bool> RemoveZipmodAsync(IZipmod zipmod)
     {
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      using var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       if (zipmod.Manifest == null)
       {
         return false;
@@ -96,7 +96,7 @@ namespace ZipmodAssistant.Api.Repositories
 
     public async Task<bool> RemoveZipmodAsync(string guid)
     {
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      using var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       var entry = await dbContext.PriorZipmodEntries.FindAsync(guid);
       if (entry == null)
       {
@@ -109,7 +109,7 @@ namespace ZipmodAssistant.Api.Repositories
 
     public async Task<int> RemoveZipmodsAsync(params string[] guids)
     {
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      using var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       var toRemove = (await GetZipmodsAsync()).Where(zipmod => guids.Contains(zipmod.Guid));
       dbContext.PriorZipmodEntries.RemoveRange(toRemove);
       var deletedCount = await dbContext.SaveChangesAsync();
@@ -118,7 +118,7 @@ namespace ZipmodAssistant.Api.Repositories
 
     public async Task<bool> UpdateZipmodAsync(IZipmod zipmod)
     {
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      using var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       if (zipmod.Manifest == null)
       {
         return false;

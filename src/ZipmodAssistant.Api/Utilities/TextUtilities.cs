@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ZipmodAssistant.Api.Enums;
 using ZipmodAssistant.Api.Interfaces.Models;
@@ -11,6 +12,8 @@ namespace ZipmodAssistant.Api.Utilities
 {
   internal static class TextUtilities
   {
+    static readonly Regex _specialCharsRegex = new Regex(@"[!@#$%^&*\(\)=+\[\]{}\\\|,<.>/?;:'""]");
+
     private static readonly Dictionary<TargetGame, string[]> _gameAliases = new()
     {
       { TargetGame.Koikatu, new [] { "koikatsu", "kk" } },
@@ -40,7 +43,7 @@ namespace ZipmodAssistant.Api.Utilities
 
     public static string ResolveFilenameFromManifest(IManifest manifest)
     {
-      var nameToUse = manifest.Name ?? manifest.Guid;
+      var nameToUse = _specialCharsRegex.Replace(manifest.Name ?? manifest.Guid, "");
       return $"[{manifest.Author}] {nameToUse} {(manifest.Version.StartsWith('v') ? "" : 'v')}{manifest.Version}.zipmod";
     }
   }

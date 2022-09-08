@@ -130,6 +130,11 @@ namespace ZipmodAssistant.App.Views.Pages
       {
         ViewModel.BuildProgress = 100;
         ViewModel.IsBuilding = false;
+        GC.Collect();
+#if DEBUG
+        await Task.Delay(1000);
+        Debugger.Break();
+#endif
       }
     }
   }

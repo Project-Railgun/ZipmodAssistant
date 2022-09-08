@@ -32,7 +32,7 @@ namespace ZipmodAssistant.Api.Services
       {
         _sessionId = GetNewSessionId();
       }
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      using var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       var entry = new SessionResultEntry
       {
         Filename = result.Filename,
@@ -55,7 +55,7 @@ namespace ZipmodAssistant.Api.Services
         _sessionId = GetNewSessionId();
       }
       var now = DateTime.Now;
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      using var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       var entries = results.Select(r => new SessionResultEntry
       {
         Filename = r.Filename,
@@ -83,7 +83,7 @@ namespace ZipmodAssistant.Api.Services
       var templateContents = File.ReadAllText("report.hjs");
       var template = Handlebars.Compile(templateContents);
 
-      var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
+      using var dbContext = _serviceProvider.GetService<ZipmodDbContext>();
       var results = dbContext.SessionResultEntries
         .Where(e => e.SessionId == _sessionId)
         .OrderBy(e => e.ZipmodHash)

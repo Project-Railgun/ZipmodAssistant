@@ -157,7 +157,7 @@ namespace ZipmodAssistant.Api.Services
           }
           UpdateManifests(zipmod, repository.Configuration);
           IEnumerable<string> gameDirectories;
-          if (zipmod.Manifest.Games?.Length > 0)
+          if (zipmod.Manifest.Games?.Count(game => !string.IsNullOrEmpty(game)) > 0)
           {
             gameDirectories = zipmod.Manifest.Games.Select(game =>
               Path.Join(

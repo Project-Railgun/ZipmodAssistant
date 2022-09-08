@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ZipmodAssistant.Api.Enums;
 using ZipmodAssistant.Api.Interfaces.Models;
+using ZipmodAssistant.Api.Models;
 using ZipmodAssistant.Shared.Enums;
 
 namespace ZipmodAssistant.Api.Utilities
@@ -40,10 +41,11 @@ namespace ZipmodAssistant.Api.Utilities
       game = TargetGame.Unknown;
       return false;
     }
+    public static string GetFileSafeGuid(string guid) => _specialCharsRegex.Replace(guid, "");
 
     public static string ResolveFilenameFromManifest(IManifest manifest)
     {
-      var nameToUse = _specialCharsRegex.Replace(manifest.Name ?? manifest.Guid, "");
+      var nameToUse = GetFileSafeGuid(manifest.Name ?? manifest.Guid);
       return $"[{manifest.Author}] {nameToUse} {(manifest.Version.StartsWith('v') ? "" : 'v')}{manifest.Version}.zipmod";
     }
   }

@@ -67,7 +67,7 @@ namespace ZipmodAssistant.Api.Services
               {
                 _logger.LogDebug("{manifestGuid} has an empty author, skipping", manifest.Guid);
               }
-              var tempDirectory = Path.Join(configuration.CacheDirectory, manifest.Guid);
+              var tempDirectory = Path.Join(configuration.CacheDirectory, TextUtilities.GetFileSafeGuid(manifest.Guid));
               var zipmod = new Zipmod(fileInfo, tempDirectory, manifest);
               if (zipmod != default)
               {

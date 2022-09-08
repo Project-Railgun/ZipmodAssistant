@@ -12,14 +12,14 @@ namespace ZipmodAssistant.App.ViewModels
 {
   public abstract class ViewModel : INotifyPropertyChanged
   {
-    private ObservableCollection<string> _logMessages = new();
+    private ObservableCollection<string> _logMessages = BindCollectionLimit(new());
 
     public virtual ObservableCollection<string> LogMessages
     {
       get => _logMessages;
       set
       {
-        _logMessages = value;
+        _logMessages = BindCollectionLimit(value);
         OnPropertyChanged();
       }
     }
@@ -27,5 +27,11 @@ namespace ZipmodAssistant.App.ViewModels
 
     protected void OnPropertyChanged([CallerMemberName]string name = "") =>
       PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+    protected static ObservableCollection<string> BindCollectionLimit(ObservableCollection<string> value)
+    {
+      
+      return value;
+    }
   }
 }

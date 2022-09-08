@@ -46,7 +46,7 @@ namespace ZipmodAssistant.Api.Models
           }
           else
           {
-            throw new FormatException($"Manifest has invalid version: {value}");
+            version[i] = 0;
           }
         }
         _version = string.Join(".", version);
@@ -57,7 +57,7 @@ namespace ZipmodAssistant.Api.Models
     [XmlElement("description")]
     public string Description { get; set; } = string.Empty;
     [XmlElement("website")]
-    public string Website { get; set; } = string.Empty;
+    public string[] Website { get; set; } = Array.Empty<string>();
     [XmlElement("game")]
     public string[] Games { get; set; } = Array.Empty<string>();
 

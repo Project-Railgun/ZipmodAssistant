@@ -64,8 +64,16 @@ namespace ZipmodAssistant.Api.Services
       var tempFileStream = File.Create($"{filename}.tmp");
       using(var assetsFileWriter = new AssetsFileWriter(tempFileStream))
       {
-        bundle.file.Pack(bundle.file.reader, assetsFileWriter, AssetBundleCompressionType.LZ4);
-        tempFileStream.Dispose();
+        try
+        {
+          bundle.file.Pack(bundle.file.reader, assetsFileWriter, AssetBundleCompressionType.LZ4);
+          tempFileStream.Dispose();
+        }
+        catch (Exception ex)
+        {
+          _logger.LogError("An error occured while compressing", ex);
+          return false;
+        }
       }
       File.Move($"{filename}.tmp", filename, true);
 
@@ -81,7 +89,7 @@ namespace ZipmodAssistant.Api.Services
       if (cabIndex >= 0)
       {
         var cabLength = bundleDataAsAscii[cabIndex..].IndexOf('\0');
-        if (cabLength <= 36)
+        if (cabLength <= 36 && cabLength > -1)
         {
           var rngBuffer = new byte[16];
           Random.Shared.NextBytes(rngBuffer);

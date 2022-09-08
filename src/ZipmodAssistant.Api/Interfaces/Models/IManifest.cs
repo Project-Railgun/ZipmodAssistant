@@ -36,7 +36,7 @@
     /// <summary>
     ///   The description of the zipmod. Optional
     /// </summary>
-    string Website { get; set; }
+    string[] Website { get; set; }
     /// <summary>
     ///   An array of games this zipmod is for. If empty, there
     ///   are no restrictions

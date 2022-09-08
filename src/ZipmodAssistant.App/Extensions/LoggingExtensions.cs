@@ -33,6 +33,10 @@ namespace ZipmodAssistant.App.Extensions
         foreach (var message in messages)
         {
           viewModel.LogMessages.Add(FormatMessage(message));
+          while (viewModel.LogMessages.Count > 50)
+          {
+            viewModel.LogMessages.RemoveAt(0);
+          }
         }
       }));
       viewModel.LogMessages = new(messages.Select(FormatMessage));

@@ -200,7 +200,7 @@ namespace ZipmodAssistant.Api.Models
     {
       var version = new int[] { 0, 0, 0 };
       var versionSegments = value.Split('.');
-      for (var i = 0; i < versionSegments.Length; i++)
+      for (var i = 0; i < Math.Min(versionSegments.Length, 3); i++)
       {
         var versionSegment = versionSegments[i];
         if (int.TryParse(versionSegment.StartsWith('v') ? versionSegment[1..] : versionSegment, out var segint))

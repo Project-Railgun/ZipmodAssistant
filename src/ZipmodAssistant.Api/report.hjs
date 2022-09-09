@@ -58,6 +58,7 @@
     const elms = document.getElementsByTagName('tr');
 
     function doSearch() {
+      const value = searchBar.value.toLowerCase();
       if (searchBar.value.length === 0) {
         for (const item of elms) {
           item.hidden = false;
@@ -67,7 +68,8 @@
           if (!item.dataset.filename) {
             continue;
           }
-          item.hidden = !item.dataset.filename.includes(searchBar.value) && !item.dataset.type.includes(searchBar.value);
+          
+          item.hidden = !item.dataset.filename.toLowerCase().includes(searchBar.value) && !item.dataset.type.toLowerCase().includes(searchBar.value);
         }
       }
     }

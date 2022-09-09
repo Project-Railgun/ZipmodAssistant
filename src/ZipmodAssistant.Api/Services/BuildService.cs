@@ -54,6 +54,8 @@ namespace ZipmodAssistant.Api.Services
     {
       var repository = new BuildSetup(configuration);
       var repositoryLock = new object();
+      var malformedDirectory = Path.Join(configuration.OutputDirectory, "Malformed");
+      Directory.CreateDirectory(malformedDirectory);
 
       var files = Directory.EnumerateFiles(configuration.InputDirectory, "*.*", SearchOption.AllDirectories);
       foreach (var filename in files)
@@ -89,7 +91,7 @@ namespace ZipmodAssistant.Api.Services
             catch (MalformedManifestException)
             {
               _logger.LogDebug("Received bad manifest: {filename}", filename);
-              fileInfo.MoveToSafely(Path.Join(configuration.OutputDirectory, "Malformed"), true);
+              fileInfo.CopyTo(Path.Join(malformedDirectory, filename), true);
               continue;
             }
           }

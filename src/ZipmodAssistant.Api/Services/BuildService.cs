@@ -68,9 +68,13 @@ namespace ZipmodAssistant.Api.Services
               using var zipArchive = System.IO.Compression.ZipFile.OpenRead(filename);
               using var manifestStream = zipArchive.GetEntry("manifest.xml").Open();
               var manifest = await Manifest.ReadFromStreamAsync(manifestStream);
+              if (string.IsNullOrEmpty(manifest.Guid))
+              {
+                throw new MalformedManifestException("No GUID found");
+              }
               if (string.IsNullOrEmpty(manifest.Author))
               {
-                _logger.LogDebug("{manifestGuid} has an empty author, skipping", manifest.Guid);
+                throw new MalformedManifestException($"{manifest.Guid} has an empty author");
               }
               var tempDirectory = Path.Join(configuration.CacheDirectory, TextUtilities.GetFileSafeGuid(manifest.Guid));
               var zipmod = new Zipmod(fileInfo, tempDirectory, manifest);
@@ -85,7 +89,7 @@ namespace ZipmodAssistant.Api.Services
             catch (MalformedManifestException)
             {
               _logger.LogDebug("Received bad manifest: {filename}", filename);
-              fileInfo.MoveToSafely(Path.Join(configuration.OutputDirectory, "Malformed"));
+              fileInfo.MoveToSafely(Path.Join(configuration.OutputDirectory, "Malformed"), true);
               continue;
             }
           }

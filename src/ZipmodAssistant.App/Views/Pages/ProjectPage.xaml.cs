@@ -35,7 +35,7 @@ namespace ZipmodAssistant.App.Views.Pages
   /// </summary>
   public partial class ProjectPage : UiPage
   {
-    private readonly ILogger<ProjectPage>? _logger;
+    private readonly ILogger<ProjectPage> _logger;
     private readonly IRepositoryService _repositoryService;
     private readonly ISessionService _sessionService;
     private readonly INavigationWindow _navigationWindow;
@@ -130,6 +130,7 @@ namespace ZipmodAssistant.App.Views.Pages
       {
         ViewModel.BuildProgress = 100;
         ViewModel.IsBuilding = false;
+        Log.CloseAndFlush();
         GC.Collect();
 #if DEBUG
         await Task.Delay(1000);

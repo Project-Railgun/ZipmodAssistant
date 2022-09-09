@@ -55,6 +55,7 @@
           <StackPanel Grid.Column="1" Grid.Row="1">
             <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipCompression}">Skip compression</wpfui:ToggleSwitch>
             <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipCleanup}">Skip junk cleanup</wpfui:ToggleSwitch>
+            <wpfui:ToggleSwitch Margin="0,16,0,0" IsChecked="{Binding SkipCharaMods}">Skip chara mods</wpfui:ToggleSwitch>
           </StackPanel>
 
           <StackPanel Grid.Row="3" Grid.ColumnSpan="2">

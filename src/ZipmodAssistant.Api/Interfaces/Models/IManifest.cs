@@ -46,5 +46,9 @@
     ///   A base64 hash of the manifest
     /// </summary>
     string Hash { get; set; }
+    /// <summary>
+    ///   Material editor data for the zipmod
+    /// </summary>
+    string? MaterialEditorData { get; set; }
   }
 }

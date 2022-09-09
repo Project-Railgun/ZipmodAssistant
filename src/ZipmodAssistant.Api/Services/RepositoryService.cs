@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ZipmodAssistant.Api.Data;
 using ZipmodAssistant.Api.Enums;
@@ -25,6 +26,8 @@ namespace ZipmodAssistant.Api.Services
 {
   public class RepositoryService : IRepositoryService
   {
+    private static readonly Regex _charResxRegex = new(@"abdata\\list\\characustom\\(.+\\)*.+(_head_00)\.csv$");
+
     private readonly ILogger<IRepositoryService> _logger;
     private readonly ISessionService _sessionService;
     private readonly IAssetService _assetService;
@@ -107,10 +110,7 @@ namespace ZipmodAssistant.Api.Services
         zipmod.Manifest.Games = buildConfiguration.Games.Select(g => g.ToString()).ToArray();
       }
 
-      File.WriteAllText(zipmod.GetPath("manifest.xml"), $"""
-        <!-- Generated with ZipmodAssistant -->
-        {zipmod.Manifest}
-        """);
+      File.WriteAllText(zipmod.GetPath("manifest.xml"), zipmod.Manifest.ToString());
       _logger.LogDebug("Updated manifests for {manifestGuid}", zipmod.Manifest.Guid);
     }
 
@@ -127,7 +127,7 @@ namespace ZipmodAssistant.Api.Services
       var skippedDirectory = Path.Join(repository.Configuration.OutputDirectory, "Skipped");
       var originalDirectory = Path.Join(repository.Configuration.OutputDirectory, "Original");
 
-      await Parallel.ForEachAsync(repository, async (zipmod, cancelToken) =>
+      await Parallel.ForEachAsync(repository, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount / 2 }, async (zipmod, cancelToken) =>
       {
         try
         {
@@ -157,12 +157,12 @@ namespace ZipmodAssistant.Api.Services
           }
           UpdateManifests(zipmod, repository.Configuration);
           IEnumerable<string> gameDirectories;
-          if (zipmod.Manifest.Games?.Count(game => !string.IsNullOrEmpty(game)) > 0)
+          if (zipmod.Manifest.Games?.Count(game => !string.IsNullOrWhiteSpace(game)) > 0)
           {
             gameDirectories = zipmod.Manifest.Games.Select(game =>
               Path.Join(
                 treatedDirectory,
-                game.ToString(),
+                game.ToString().Replace(" ", ""),
                 zipmodType.ToString()));
           }
           else
@@ -172,6 +172,7 @@ namespace ZipmodAssistant.Api.Services
 
           var looseFileDirectories = gameDirectories.Select(dir => Path.Join(dir, "Loose Images")).ToArray();
           var zipmodFiles = Directory.EnumerateFiles(zipmod.WorkingDirectory, "*.*", SearchOption.AllDirectories);
+          var hasCharaMods = zipmodFiles.Any(_charResxRegex.IsMatch);
           await Parallel.ForEachAsync(zipmodFiles, async (file, cancelToken) =>
           {
             var fileInfo = new FileInfo(file);
@@ -179,9 +180,9 @@ namespace ZipmodAssistant.Api.Services
             switch (fileInfo.Extension.ToLower())
             {
               case ".png":
-                var didCompress = await _assetService.CompressImageAsync(repository.Configuration, file);
+                var didCompressImage = await _assetService.CompressImageAsync(repository.Configuration, file);
                 // only files with no data after IEND are compressed
-                if (!didCompress)
+                if (!didCompressImage)
                 {
                   await _sessionService.CommitResultAsync(new SessionResult(zipmod, file, SessionResultType.ResourceCopied));
                 }
@@ -195,28 +196,43 @@ namespace ZipmodAssistant.Api.Services
                 if (repository.Configuration.RandomizeCab)
                 {
                   _logger.LogDebug("Randomizing CAB for {file}", file);
+                  var didRandomizeCab = false;
                   var randomizeCabDuration = await TimingUtilities.TimeAsync(async () =>
                   {
-                    var didRandomize = await _assetService.RandomizeCabAsync(repository.Configuration, file);
-                    await _sessionService.CommitResultAsync(new SessionResult(zipmod, file, didRandomize ? SessionResultType.ResourceCabRandomized : SessionResultType.NoChange));
+                    didRandomizeCab = await _assetService.RandomizeCabAsync(repository.Configuration, file);
+                    
                   });
-                  _logger.LogDebug("CAB randomization of {file} took {time}ms", file, randomizeCabDuration.TotalMilliseconds);
+                  await _sessionService.CommitResultAsync(new SessionResult(zipmod, file, didRandomizeCab ? SessionResultType.ResourceCabRandomized : SessionResultType.NoChange));
+                  if (didRandomizeCab)
+                  {
+                    _logger.LogDebug("CAB randomization of {file} took {time}ms", file, randomizeCabDuration.TotalMilliseconds);
+                  }
+                  
                 }
                 if (repository.Configuration.SkipCompression)
                 {
                   _logger.LogDebug("Compression skipped, copying");
                   await _sessionService.CommitResultAsync(new SessionResult(zipmod, file, SessionResultType.ResourceCopied));
                 }
+                else if (repository.Configuration.SkipCharaMods && hasCharaMods)
+                {
+                  _logger.LogDebug("Compression skipped for chara mods");
+                  await _sessionService.CommitResultAsync(new SessionResult(zipmod, file, SessionResultType.ResourceCopied));
+                }
                 else
                 {
                   _logger.LogDebug("Compressing unity3d file");
+                  var didCompressResx = false;
                   var compressionDuration = await TimingUtilities.TimeAsync(async () =>
                   {
-                    var didCompress = await _assetService.CompressUnityResxAsync(repository.Configuration, file);
-                    await _sessionService.CommitResultAsync(new SessionResult(zipmod, file, didCompress ? SessionResultType.ResourceCompressed : SessionResultType.NoChange));
-
+                    didCompressResx = await _assetService.CompressUnityResxAsync(repository.Configuration, file);
                   });
-                  _logger.LogDebug("Compression of {file} took {time}ms", file, compressionDuration.TotalMilliseconds);
+                  await _sessionService.CommitResultAsync(new SessionResult(zipmod, file, didCompressResx ? SessionResultType.ResourceCompressed : SessionResultType.NoChange));
+                  if (didCompressResx)
+                  {
+                    _logger.LogDebug("Compression of {file} took {time}ms", file, compressionDuration.TotalMilliseconds);
+                  }
+                  
                 }
                 break;
               case ".csv":

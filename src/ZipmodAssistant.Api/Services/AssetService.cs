@@ -22,12 +22,8 @@ namespace ZipmodAssistant.Api.Services
     private readonly ILogger<IAssetService> _logger;
     private readonly ICardProvider _cardProvider;
 
-    private static readonly Regex[] _skipCompressionPaths = new Regex[]
-    {
-      // maps
-      new(@"abdata(\/|\\)map(\/|\\)scene(\/|\\).+\.unity3d$")
-    };
-
+    private static readonly Regex _mapResxRegex = new(@"abdata\/map\/scene\/.+\.unity3d$");
+    
     public AssetService(ILogger<IAssetService> logger, ICardProvider cardProvider)
     {
       _logger = logger;
@@ -58,11 +54,13 @@ namespace ZipmodAssistant.Api.Services
 
     public Task<bool> CompressUnityResxAsync(IBuildConfiguration buildConfig, string filename) => Task.Run(() =>
     {
+      var normalizedFilename = filename.Replace('\\', '/');
       // I'd like to do a globbing pattern
-      if (_skipCompressionPaths.Any(regex => regex.IsMatch(filename)))
+      if (_mapResxRegex.IsMatch(normalizedFilename))
       {
         return false;
       }
+    
       var assetsManager = new AssetsManager();
       var bundle = assetsManager.LoadBundleFile(filename);
       var tempFileStream = File.Create($"{filename}.tmp");

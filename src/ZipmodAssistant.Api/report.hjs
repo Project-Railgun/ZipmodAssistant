@@ -9,6 +9,10 @@
       padding: 0;
     }
 
+    #search-bar {
+      margin: 16px 0;
+    }
+
     .report-container {
       display: flex;
       flex-direction: column;
@@ -27,6 +31,7 @@
 <body>
   <div class="report-container">
     <h3>Session {{SessionId}} - Date {{CurrentDate}}</h3>
+    <input id="search-bar" type="text" placeholder="Search" onkeydown="doSearch()" onchange="doSearch()" />
     <table>
       <thead>
         <tr>
@@ -36,17 +41,36 @@
       </thead>
       <tbody>
         {{#Entries}}
-          <tr>
-            <td>
-              {{Filename}}
-            </td>
-            <td>
-              {{Type}}
-            </td>
-          </tr>
+        <tr data-filename="{{Filename}}" data-type="{{Type}}">
+          <td>
+            {{Filename}}
+          </td>
+          <td>
+            {{Type}}
+          </td>
+        </tr>
         {{/Entries}}
       </tbody>
     </table>
   </div>
+  <script>
+    const searchBar = document.getElementById('search-bar');
+    const elms = document.getElementsByTagName('tr');
+
+    function doSearch() {
+      if (searchBar.value.length === 0) {
+        for (const item of elms) {
+          item.hidden = false;
+        }
+      } else {
+        for (const item of elms) {
+          if (!item.dataset.filename) {
+            continue;
+          }
+          item.hidden = !item.dataset.filename.includes(searchBar.value) && !item.dataset.type.includes(searchBar.value);
+        }
+      }
+    }
+  </script>
 </body>
 </html>

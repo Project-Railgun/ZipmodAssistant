@@ -39,6 +39,8 @@ namespace ZipmodAssistant.App.Models
 
     public bool SkipKnownMods { get; set; }
 
+    public bool SkipCharaMods { get; set; }
+
     public IEnumerable<TargetGame> Games { get; set; } = new List<TargetGame>();
 
     public static async Task<ProjectConfiguration> LoadAsync(string filename)

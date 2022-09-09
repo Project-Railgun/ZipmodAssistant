@@ -41,7 +41,7 @@ namespace ZipmodAssistant.Api.Utilities
       game = TargetGame.Unknown;
       return false;
     }
-    public static string GetFileSafeGuid(string guid) => _specialCharsRegex.Replace(guid, "");
+    public static string GetFileSafeGuid(string guid) => _specialCharsRegex.Replace(guid, "_").Replace("__", "_");
 
     public static string ResolveFilenameFromManifest(IManifest manifest)
     {

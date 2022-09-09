@@ -39,6 +39,10 @@ namespace ZipmodAssistant.Api.Interfaces.Models
     ///   Whether or not to skip known mods that exist in the output directory/db
     /// </summary>
     bool SkipKnownMods { get; set; }
+    /// <summary>
+    ///   Whether or not to skip character mods
+    /// </summary>
+    bool SkipCharaMods { get; set; }
     IEnumerable<TargetGame> Games { get; set; }
   }
 }

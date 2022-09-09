@@ -161,6 +161,16 @@ namespace ZipmodAssistant.App.ViewModels
       }
     }
 
+    public bool SkipCharaMods
+    {
+      get => _project.SkipCharaMods;
+      set
+      {
+        _project.SkipCharaMods = value;
+        OnPropertyChanged();
+      }
+    }
+
     public bool IsKk
     {
       get => _project.Games.Contains(TargetGame.Koikatu) ||

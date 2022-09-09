@@ -36,7 +36,7 @@ namespace ZipmodAssistant.App.Views.Pages
   public partial class ProjectPage : UiPage
   {
     private readonly ILogger<ProjectPage> _logger;
-    private readonly IRepositoryService _repositoryService;
+    private readonly IBuildService _repositoryService;
     private readonly ISessionService _sessionService;
     private readonly INavigationWindow _navigationWindow;
     private readonly ITaskBarService _taskBarService;
@@ -47,7 +47,7 @@ namespace ZipmodAssistant.App.Views.Pages
 
     public ProjectPage(
       INavigationWindow navigationWindow,
-      IRepositoryService repositoryService,
+      IBuildService repositoryService,
       ILogger<ProjectPage> loggerService,
       ISessionService sessionService,
       ITaskBarService taskBarService,

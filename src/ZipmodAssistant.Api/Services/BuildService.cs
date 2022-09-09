@@ -6,6 +6,7 @@ using SharpCompress.Archives.Zip;
 using SharpCompress.Common;
 using System;
 using System.Collections.Generic;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -21,21 +22,22 @@ using ZipmodAssistant.Api.Models;
 using ZipmodAssistant.Api.Utilities;
 using ZipmodAssistant.Shared.Enums;
 using ZipmodAssistant.Tarot.Interfaces.Providers;
+using ZipArchive = SharpCompress.Archives.Zip.ZipArchive;
 
 namespace ZipmodAssistant.Api.Services
 {
-  public class RepositoryService : IRepositoryService
+  public class BuildService : IBuildService
   {
     private static readonly Regex _charResxRegex = new(@"abdata\\list\\characustom\\(.+\\)*.+(_head_00)\.csv$");
 
-    private readonly ILogger<IRepositoryService> _logger;
+    private readonly ILogger<IBuildService> _logger;
     private readonly ISessionService _sessionService;
     private readonly IAssetService _assetService;
     private readonly ICardProvider _cardProvider;
     private readonly IZipmodRepository _zipmodRepository;
 
-    public RepositoryService(
-      ILogger<IRepositoryService> logger,
+    public BuildService(
+      ILogger<IBuildService> logger,
       ISessionService sessionService,
       IAssetService assetService,
       ICardProvider cardProvider,
@@ -127,25 +129,25 @@ namespace ZipmodAssistant.Api.Services
       var skippedDirectory = Path.Join(repository.Configuration.OutputDirectory, "Skipped");
       var originalDirectory = Path.Join(repository.Configuration.OutputDirectory, "Original");
 
+      Directory.CreateDirectory(treatedDirectory);
+      Directory.CreateDirectory(skippedDirectory);
+      Directory.CreateDirectory(originalDirectory);
+
       await Parallel.ForEachAsync(repository, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount / 2 }, async (zipmod, cancelToken) =>
       {
         try
         {
-          zipmod.FileInfo.CopyTo(new[] { originalDirectory }, true);
+          zipmod.FileInfo.CopyTo(Path.Join(originalDirectory, zipmod.FileInfo.Name), true);
           if (repository.Configuration.SkipKnownMods && await _zipmodRepository.IsManifestInHistoryAsync(zipmod.Manifest))
           {
             _logger.LogDebug("{manifestGuid} is a known mod, skipping", zipmod.Manifest.Guid);
             await _sessionService.CommitResultAsync(new SessionResult(zipmod, zipmod.FileInfo.FullName, SessionResultType.NoChange));
-            zipmod.FileInfo.CopyTo(new[] { skippedDirectory }, true);
+            zipmod.FileInfo.CopyTo(Path.Join(skippedDirectory, zipmod.FileInfo.Name), true);
             return;
           }
           MoveZipmodToWorkingDirectory(zipmod);
 
           var zipmodType = zipmod.GetZipmodType();
-          var newFilename = repository.Configuration.SkipRenaming
-            ? zipmod.FileInfo.Name
-            : TextUtilities.ResolveFilenameFromManifest(zipmod.Manifest);
-          var tempZipFilename = Path.Join(repository.Configuration.CacheDirectory, newFilename);
 
 
           // this has to get called after extracted to the cache directory so we can scan for zipmod type
@@ -156,23 +158,30 @@ namespace ZipmodAssistant.Api.Services
             return;
           }
           UpdateManifests(zipmod, repository.Configuration);
-          IEnumerable<string> gameDirectories;
+          string gameDirectory;
           if (zipmod.Manifest.Games?.Count(game => !string.IsNullOrWhiteSpace(game)) > 0)
           {
-            gameDirectories = zipmod.Manifest.Games.Select(game =>
-              Path.Join(
-                treatedDirectory,
-                game.ToString().Replace(" ", ""),
-                zipmodType.ToString()));
+            gameDirectory = Path.Join(
+              treatedDirectory,
+              string.Join(' ', zipmod.Manifest.Games.Select(game => game.ToString().Replace(" ", ""))));
           }
           else
           {
-            gameDirectories = new[] { Path.Join(treatedDirectory, "None", zipmodType.ToString()) };
+            gameDirectory = Path.Join(treatedDirectory, "None", zipmodType.ToString());
           }
 
-          var looseFileDirectories = gameDirectories.Select(dir => Path.Join(dir, "Loose Images")).ToArray();
+          var newFilename = repository.Configuration.SkipRenaming
+            ? zipmod.FileInfo.Name
+            : TextUtilities.ResolveFilenameFromManifest(zipmod.Manifest);
+          var outputFilename = Path.Join(gameDirectory, newFilename);
+
+          var looseFilesDirectory = Path.Join(gameDirectory, "Loose Images");
           var zipmodFiles = Directory.EnumerateFiles(zipmod.WorkingDirectory, "*.*", SearchOption.AllDirectories);
           var hasCharaMods = zipmodFiles.Any(_charResxRegex.IsMatch);
+
+          // this covers the game directories too
+          Directory.CreateDirectory(looseFilesDirectory);
+
           await Parallel.ForEachAsync(zipmodFiles, async (file, cancelToken) =>
           {
             var fileInfo = new FileInfo(file);
@@ -188,7 +197,7 @@ namespace ZipmodAssistant.Api.Services
                 }
                 else
                 {
-                  fileInfo.CopyTo(looseFileDirectories, true);
+                  fileInfo.CopyTo(Path.Join(looseFilesDirectory, fileInfo.Name), true);
                   await _sessionService.CommitResultAsync(new SessionResult(zipmod, file, SessionResultType.ImageCompressed));
                 }
                 break;
@@ -258,16 +267,11 @@ namespace ZipmodAssistant.Api.Services
 
           using var archive = ZipArchive.Create();
           archive.AddAllFromDirectory(zipmod.WorkingDirectory);
-          archive.SaveTo(tempZipFilename, CompressionType.None);
-          var tempZipFileInfo = new FileInfo(tempZipFilename);
-          // save to temp zipfile to prepare copying
-          var outputtedZipFiles = tempZipFileInfo.CopyTo(gameDirectories, true);
-          foreach (var zipFile in outputtedZipFiles)
-          {
-            await _sessionService.CommitResultAsync(new SessionResult(zipmod, zipFile, SessionResultType.ResourceCopied));
-          }
+          archive.SaveTo(outputFilename, CompressionType.None);
+          var tempZipFileInfo = new FileInfo(outputFilename);
 
-          // await _sessionService.CommitResultAsync(new SessionResult(zipmod, outputFilename, SessionResultType.ZipmodCreated));
+          await _sessionService.CommitResultAsync(new SessionResult(zipmod, outputFilename, SessionResultType.ResourceCopied));
+
           if (await _zipmodRepository.AddZipmodAsync(zipmod))
           {
             _logger.LogDebug("Beginning tracking of {manifestGuid}", zipmod.Manifest.Guid);

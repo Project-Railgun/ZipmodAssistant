@@ -5,7 +5,7 @@ namespace ZipmodAssistant.Api.Interfaces.Services
   /// <summary>
   ///   Provides functionality around processing a resource repository
   /// </summary>
-  public interface IRepositoryService
+  public interface IBuildService
   {
     /// <summary>
     ///   Builds a <see cref="IBuildSetup"/> from the input directory in <paramref name="configuration"/>

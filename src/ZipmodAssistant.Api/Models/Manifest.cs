@@ -100,7 +100,7 @@ namespace ZipmodAssistant.Api.Models
               }
               else if (reader.Name == "version")
               {
-                manifest.Version = ReadVersionFromString(await reader.ReadElementContentAsStringAsync());
+                manifest.Version = ReadVersionFromString(TrimEmpty(await reader.ReadElementContentAsStringAsync()));
               }
               else if (reader.Name == "author")
               {

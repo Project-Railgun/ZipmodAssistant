@@ -29,20 +29,5 @@
       target.Directory.Create();
       fileInfo.MoveTo(destination, overwrite);
     }
-
-    public static IEnumerable<string> CopyTo(this FileInfo fileInfo, IEnumerable<string> directories) =>
-      CopyTo(fileInfo, directories, false);
-
-    public static IEnumerable<string> CopyTo(this FileInfo fileInfo, IEnumerable<string> directories, bool overwrite) =>
-      directories.Select((directory) =>
-      {
-        if (!Directory.Exists(directory))
-        {
-          Directory.CreateDirectory(directory);
-        }
-        var targetPath = Path.Join(directory, fileInfo.Name);
-        fileInfo.CopyTo(targetPath, overwrite);
-        return targetPath;
-      });
   }
 }

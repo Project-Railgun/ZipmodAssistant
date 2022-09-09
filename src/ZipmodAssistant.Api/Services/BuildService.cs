@@ -143,7 +143,6 @@ namespace ZipmodAssistant.Api.Services
       {
         try
         {
-          zipmod.FileInfo.CopyTo(Path.Join(originalDirectory, zipmod.FileInfo.Name), true);
           if (repository.Configuration.SkipKnownMods && await _zipmodRepository.IsManifestInHistoryAsync(zipmod.Manifest))
           {
             _logger.LogDebug("{manifestGuid} is a known mod, skipping", zipmod.Manifest.Guid);
@@ -152,6 +151,7 @@ namespace ZipmodAssistant.Api.Services
             return;
           }
           MoveZipmodToWorkingDirectory(zipmod);
+          zipmod.FileInfo.MoveTo(originalDirectory, true);
 
           var zipmodType = zipmod.GetZipmodType();
 

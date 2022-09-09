@@ -198,18 +198,19 @@ namespace ZipmodAssistant.Api.Models
 
     static string ReadVersionFromString(string value)
     {
-      var version = new int[] { 0, 0, 0 };
       var versionSegments = value.Split('.');
-      for (var i = 0; i < Math.Min(versionSegments.Length, 3); i++)
+      var version = new string[versionSegments.Length];
+      Array.Fill(version, "0");
+      for (var i = 0; i < versionSegments.Length; i++)
       {
         var versionSegment = versionSegments[i];
-        if (int.TryParse(versionSegment.StartsWith('v') ? versionSegment[1..] : versionSegment, out var segint))
+        if (string.IsNullOrEmpty(versionSegment))
         {
-          version[i] = segint;
+          version[i] = "0";
         }
         else
         {
-          version[i] = 0;
+          version[i] = versionSegment;
         }
       }
 

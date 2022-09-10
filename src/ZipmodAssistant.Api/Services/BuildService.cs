@@ -288,12 +288,10 @@ namespace ZipmodAssistant.Api.Services
                   }
                   else
                   {
-                    // an error occured
-                    fileInfo.CopyTo(Path.Join(dirs.LooseImages, fileInfo.Name), true);
+                    // an error occured, keep original
                     await _sessionService.CommitResultAsync(new SessionResult(zipmod, filename, SessionResultType.NoChange));
                   }
                 }
-                // if compressed, it'll create a {filename}-orig.png, with the new file being compressed
                 
                 break;
               case ".unity3d":

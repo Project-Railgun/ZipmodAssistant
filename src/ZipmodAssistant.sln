@@ -21,6 +21,20 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZipmodAssistant.Tarot", "Zi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZipmodAssistant.Shared", "ZipmodAssistant.Shared\ZipmodAssistant.Shared.csproj", "{86DE74BC-4F9D-4958-8991-933D0EAD0C6F}"
 EndProject
+Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "pngcrush_1_8_11_w64", "..\include\pngcrush_1_8_11_w64.exe", "{C6A8F5F5-22DD-4053-8436-75296D657D21}"
+	ProjectSection(DebuggerProjectSystem) = preProject
+		PortSupplier = 00000000-0000-0000-0000-000000000000
+		Executable = F:\dev\ZipmodAssistant\include\pngcrush_1_8_11_w64.exe
+		RemoteMachine = DESKTOP-5QDVPKN
+		StartingDirectory = F:\dev\ZipmodAssistant\include
+		Environment = Default
+		LaunchingEngine = 00000000-0000-0000-0000-000000000000
+		UseLegacyDebugEngines = No
+		LaunchSQLEngine = No
+		AttachLaunchAction = No
+		IORedirection = Enable
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,6 +143,14 @@ Global
 		{86DE74BC-4F9D-4958-8991-933D0EAD0C6F}.Release|x64.Build.0 = Release|Any CPU
 		{86DE74BC-4F9D-4958-8991-933D0EAD0C6F}.Release|x86.ActiveCfg = Release|Any CPU
 		{86DE74BC-4F9D-4958-8991-933D0EAD0C6F}.Release|x86.Build.0 = Release|Any CPU
+		{C6A8F5F5-22DD-4053-8436-75296D657D21}.Debug|Any CPU.ActiveCfg = Release|x64
+		{C6A8F5F5-22DD-4053-8436-75296D657D21}.Debug|arm64.ActiveCfg = Release|x64
+		{C6A8F5F5-22DD-4053-8436-75296D657D21}.Debug|x64.ActiveCfg = Release|x64
+		{C6A8F5F5-22DD-4053-8436-75296D657D21}.Debug|x86.ActiveCfg = Release|x64
+		{C6A8F5F5-22DD-4053-8436-75296D657D21}.Release|Any CPU.ActiveCfg = Release|x64
+		{C6A8F5F5-22DD-4053-8436-75296D657D21}.Release|arm64.ActiveCfg = Release|x64
+		{C6A8F5F5-22DD-4053-8436-75296D657D21}.Release|x64.ActiveCfg = Release|x64
+		{C6A8F5F5-22DD-4053-8436-75296D657D21}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

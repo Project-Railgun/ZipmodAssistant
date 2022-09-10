@@ -1,9 +1,7 @@
 ﻿using Aspose.Imaging.MemoryManagement;
+using Ionic.Zip;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using SharpCompress.Archives;
-using SharpCompress.Archives.Zip;
-using SharpCompress.Common;
 using System;
 using System.Collections.Generic;
 using System.IO.Compression;
@@ -22,7 +20,7 @@ using ZipmodAssistant.Api.Models;
 using ZipmodAssistant.Api.Utilities;
 using ZipmodAssistant.Shared.Enums;
 using ZipmodAssistant.Tarot.Interfaces.Providers;
-using ZipArchive = SharpCompress.Archives.Zip.ZipArchive;
+using ZipFile = Ionic.Zip.ZipFile;
 
 namespace ZipmodAssistant.Api.Services
 {
@@ -269,11 +267,23 @@ namespace ZipmodAssistant.Api.Services
             }
           });
 
+          if (File.Exists(outputFilename))
+          {
+            File.Delete(outputFilename);
+          }
+          
+          using (var archive = new ZipFile(outputFilename))
+          {
+            archive.CompressionLevel = Ionic.Zlib.CompressionLevel.Level0;
+            archive.CompressionMethod = CompressionMethod.None;
+            
+            archive.AddDirectory(zipmod.WorkingDirectory);
+            archive.Save();
+          }
 
-
-          using var archive = ZipArchive.Create();
-          archive.AddAllFromDirectory(zipmod.WorkingDirectory);
-          archive.SaveTo(outputFilename, CompressionType.None);
+          //using var archive = ZipArchive.Create();
+          //archive.AddAllFromDirectory(zipmod.WorkingDirectory);
+          //archive.SaveTo(outputFilename, CompressionType.None);
           // gonna have to do this instead of MoveTo because it throws permissions errors
           zipmod.FileInfo.CopyTo(Path.Join(originalDirectory, zipmod.FileInfo.Name), true);
           zipmod.FileInfo.Delete();

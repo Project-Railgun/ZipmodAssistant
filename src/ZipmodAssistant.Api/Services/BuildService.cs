@@ -124,10 +124,10 @@ namespace ZipmodAssistant.Api.Services
                 }
               }
             }
-            catch (MalformedManifestException)
+            catch (MalformedManifestException ex)
             {
-              _logger.LogInformation("Received bad manifest: {filename}", filename);
-              fileInfo.CopyTo(Path.Join(dirs.Malformed, filename), true);
+              _logger.LogError(ex, "Received bad manifest: {filename}", filename);
+              fileInfo.CopyTo(Path.Join(dirs.Malformed, fileInfo.Name), true);
               continue;
             }
           }

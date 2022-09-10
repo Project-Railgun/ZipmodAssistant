@@ -117,7 +117,7 @@ namespace ZipmodAssistant.Api.Services
       {
         zipmod.Manifest.Games = buildConfiguration.Games.Select(g => g.ToString()).ToArray();
       }
-
+      
       File.WriteAllText(zipmod.GetPath("manifest.xml"), zipmod.Manifest.ToString());
       _logger.LogDebug("Updated manifests for {manifestGuid}", zipmod.Manifest.Guid);
     }
@@ -151,7 +151,6 @@ namespace ZipmodAssistant.Api.Services
             return;
           }
           MoveZipmodToWorkingDirectory(zipmod);
-          zipmod.FileInfo.MoveTo(originalDirectory, true);
 
           var zipmodType = zipmod.GetZipmodType();
 
@@ -169,7 +168,8 @@ namespace ZipmodAssistant.Api.Services
           {
             gameDirectory = Path.Join(
               treatedDirectory,
-              string.Join(' ', zipmod.Manifest.Games.Select(game => game.ToString().Replace(" ", ""))));
+              string.Join(' ', zipmod.Manifest.Games.Select(game => game.ToString().Replace(" ", ""))),
+              zipmodType.ToString());
           }
           else
           {
@@ -274,7 +274,10 @@ namespace ZipmodAssistant.Api.Services
           using var archive = ZipArchive.Create();
           archive.AddAllFromDirectory(zipmod.WorkingDirectory);
           archive.SaveTo(outputFilename, CompressionType.None);
-          var tempZipFileInfo = new FileInfo(outputFilename);
+          // gonna have to do this instead of MoveTo because it throws permissions errors
+          zipmod.FileInfo.CopyTo(Path.Join(originalDirectory, zipmod.FileInfo.Name), true);
+          zipmod.FileInfo.Delete();
+          _logger.LogInformation("Output {originalFilename} to {newFilename}", zipmod.FileInfo.FullName, outputFilename);
 
           await _sessionService.CommitResultAsync(new SessionResult(zipmod, outputFilename, SessionResultType.ResourceCopied));
 

@@ -45,7 +45,7 @@ namespace ZipmodAssistant.Api.Utilities
 
     public static string ResolveFilenameFromManifest(IManifest manifest)
     {
-      var nameToUse = GetFileSafeGuid(manifest.Name ?? manifest.Guid);
+      var nameToUse = GetFileSafeGuid(string.IsNullOrEmpty(manifest.Name) ? manifest.Guid : manifest.Name);
       return $"[{manifest.Author.Replace('\\', '-').Replace('/', '-')}] {nameToUse} {(manifest.Version.StartsWith('v') ? "" : 'v')}{manifest.Version}.zipmod";
     }
   }

@@ -157,6 +157,7 @@ namespace ZipmodAssistant.Api.Models
       var xmlWriterSettings = new XmlWriterSettings
       {
         Indent = true,
+        OmitXmlDeclaration = true,
       };
       using var ms = new MemoryStream();
       using var xmlWriter = XmlWriter.Create(ms, xmlWriterSettings);
@@ -191,7 +192,7 @@ namespace ZipmodAssistant.Api.Models
       xmlWriter.WriteEndElement();
       xmlWriter.Flush();
 
-      return Encoding.UTF8.GetString(ms.GetBuffer());
+      return Encoding.UTF8.GetString(ms.GetBuffer().TakeWhile((b) => b != 0x00).ToArray());
     }
 
     static string TrimEmpty(string input) => input.Replace("\n", "").Trim();

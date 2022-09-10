@@ -224,7 +224,7 @@ namespace ZipmodAssistant.Api.Services
           var newFilename = repository.Configuration.SkipRenaming
             ? zipmod.FileInfo.Name
             : TextUtilities.ResolveFilenameFromManifest(zipmod.Manifest);
-          var outputFilename = Path.Join(gameDirectory, newFilename);
+          // var outputFilename = Path.Join(gameDirectory, newFilename);
           var zipmodFiles = Directory.EnumerateFiles(zipmod.WorkingDirectory, "*.*", SearchOption.AllDirectories);
           var hasCharaMods = zipmodFiles.Any(_charResxRegex.IsMatch);
 
@@ -356,11 +356,7 @@ namespace ZipmodAssistant.Api.Services
             }
           });
 
-          if (File.Exists(outputFilename))
-          {
-            File.Delete(outputFilename);
-          }
-          
+          var outputFilename = GetAvailableFilename(gameDirectory, newFilename);
           using (var archive = new ZipFile(outputFilename))
           {
             archive.CompressionLevel = Ionic.Zlib.CompressionLevel.Level0;
@@ -372,9 +368,9 @@ namespace ZipmodAssistant.Api.Services
 
           // gonna have to do this instead of MoveTo because it throws permissions errors
           
-          zipmod.FileInfo.CopyTo(GetNextOriginalFilename(dirs.Original, zipmod.FileInfo.Name), true);
+          var newFileInfo = zipmod.FileInfo.CopyTo(GetAvailableFilename(dirs.Original, zipmod.FileInfo.Name), true);
           zipmod.FileInfo.Delete();
-          _logger.LogInformation("Output {originalFilename} to {newFilename}", zipmod.FileInfo.FullName, outputFilename);
+          _logger.LogInformation("Output {originalFilename} to {newFilename}", zipmod.FileInfo.FullName, newFileInfo.FullName);
 
           await _sessionService.CommitResultAsync(new SessionResult(zipmod, outputFilename, SessionResultType.ResourceCopied));
 
@@ -418,7 +414,7 @@ namespace ZipmodAssistant.Api.Services
       fileInfo.Name == MANIFESTORIG_FILENAME ||
       fileInfo.FullName.Contains("abdata" + Path.DirectorySeparatorChar);
 
-    static string GetNextOriginalFilename(string directory, string filenameWithoutDir)
+    static string GetAvailableFilename(string directory, string filenameWithoutDir)
     {
       var fileInfo = new FileInfo(Path.Join(directory, filenameWithoutDir));
       var filenameWithoutExt = fileInfo.NameWithoutExtension();

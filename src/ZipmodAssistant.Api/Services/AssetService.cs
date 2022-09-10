@@ -6,10 +6,12 @@ using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using ZipmodAssistant.Api.Extensions;
 using ZipmodAssistant.Api.Interfaces.Models;
 using ZipmodAssistant.Api.Interfaces.Services;
 using ZipmodAssistant.Tarot.Interfaces.Providers;
@@ -30,20 +32,54 @@ namespace ZipmodAssistant.Api.Services
       _cardProvider = cardProvider;
     }
 
+    static Process BuildPngCrushProcess(string inputFilename, string outputFilename) => new()
+    {
+      StartInfo = new()
+      {
+        FileName = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "Include", "pngcrush.exe"),
+        CreateNoWindow = true,
+        UseShellExecute = false,
+        // put extra quotes around just to make sure
+        Arguments = string.Join(' ', "-reduce", "-brute", $"\"{inputFilename}\"", $"\"{outputFilename}\""),
+      },
+      EnableRaisingEvents = true,
+      PriorityBoostEnabled = true,
+      PriorityClass = ProcessPriorityClass.RealTime,
+    };
+
     public async Task<bool> CompressImageAsync(IBuildConfiguration buildConfig, string filename)
     {
-      if (filename.EndsWith(".compressed.png"))
-      {
-        return false;
-      }
       try
       {
-        if (!await CardUtilities.ContainsDataAfterIEndAsync(filename))
+        // compress
+        var fileInfo = new FileInfo(filename);
+        var crushedFilename = Path.Join(fileInfo.Directory.FullName, $"{fileInfo.NameWithoutExtension()}-crushed.png");
+        var process = BuildPngCrushProcess(filename, crushedFilename);
+        try
         {
-          // compress
-          return true;
+          process.Exited += (_, _) =>
+          {
+            if (process.ExitCode != 0)
+            {
+              throw new Exception("pngcrush exited with non-zero exit code");
+            }
+          };
+          process.Start();
+          await process.WaitForExitAsync();
+          // await taskSource.Task;
+          // 1. delete original file
+          fileInfo.Delete();
+          // 2. copy over crushed file
+          File.Copy(crushedFilename, filename, true);
+          // 3. delete original crushed file
+          File.Delete(crushedFilename);
         }
-        return false;
+        catch (Exception ex)
+        {
+          _logger.LogError(ex, "Failed to crush {filename}", filename);
+          return false;
+        }
+        return true;
       }
       catch (Exception ex)
       {

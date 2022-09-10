@@ -15,6 +15,8 @@ namespace ZipmodAssistant.Tarot.Utilities
       0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
     };
 
+    private static Dictionary<string, bool> _hasIEndDataCache = new();
+
     private class EmptyStream : Stream
     {
       public override bool CanRead => false;
@@ -55,6 +57,10 @@ namespace ZipmodAssistant.Tarot.Utilities
 
     public static async Task<bool> ContainsDataAfterIEndAsync(string filename)
     {
+      if (_hasIEndDataCache.TryGetValue(filename, out var hasIEndData))
+      {
+        return hasIEndData;
+      }
       using var inputStream = File.OpenRead(filename);
       bool isReadingChunks;
       // contains the image information
@@ -89,7 +95,9 @@ namespace ZipmodAssistant.Tarot.Utilities
         isReadingChunks = length > 0;
       }
       while (isReadingChunks);
-      return inputStream.Position == inputStream.Length - 1;
+      var result = inputStream.Position == inputStream.Length - 1;
+      _hasIEndDataCache.Add(filename, result);
+      return result;
     }
 
     public static async Task ReadDataToBuffersAsync(Stream inputStream, [NotNull]Stream imageStream, [NotNull]Stream dataStream)

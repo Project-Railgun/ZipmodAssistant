@@ -44,6 +44,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Include\pngcrush.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="report.hjs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

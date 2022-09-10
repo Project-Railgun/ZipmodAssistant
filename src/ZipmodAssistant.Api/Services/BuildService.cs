@@ -372,7 +372,8 @@ namespace ZipmodAssistant.Api.Services
           }
 
           // gonna have to do this instead of MoveTo because it throws permissions errors
-          zipmod.FileInfo.CopyTo(Path.Join(dirs.Original, zipmod.FileInfo.Name), true);
+          
+          zipmod.FileInfo.CopyTo(GetNextOriginalFilename(dirs.Original, zipmod.FileInfo.Name), true);
           zipmod.FileInfo.Delete();
           _logger.LogInformation("Output {originalFilename} to {newFilename}", zipmod.FileInfo.FullName, outputFilename);
 
@@ -417,5 +418,24 @@ namespace ZipmodAssistant.Api.Services
       fileInfo.Name == MANIFEST_FILENAME ||
       fileInfo.Name == MANIFESTORIG_FILENAME ||
       fileInfo.FullName.Contains("abdata" + Path.DirectorySeparatorChar);
+
+    static string GetNextOriginalFilename(string directory, string filenameWithoutDir)
+    {
+      var fileInfo = new FileInfo(Path.Join(directory, filenameWithoutDir));
+      var filenameWithoutExt = fileInfo.NameWithoutExtension();
+      if (!fileInfo.Exists)
+      {
+        return fileInfo.FullName;
+      }
+      for (var i = 1; i < int.MaxValue; i++)
+      {
+        var nextFileInfo = new FileInfo(Path.Join(directory, $"{filenameWithoutExt} ({i}){fileInfo.Extension}"));
+        if (!nextFileInfo.Exists)
+        {
+          return nextFileInfo.FullName;
+        }
+      }
+      throw new Exception("There are too many originals in this directory, clear some out");
+    }
   }
 }

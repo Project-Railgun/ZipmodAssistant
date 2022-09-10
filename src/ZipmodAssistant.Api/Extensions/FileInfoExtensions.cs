@@ -20,6 +20,9 @@
       }
     }
 
+    public static bool HasFile(this DirectoryInfo directoryInfo, string filename) =>
+      directoryInfo.GetFiles().Any(f => f.Name == filename);
+
     public static void MoveToSafely(this FileInfo fileInfo, string destination) =>
       MoveToSafely(fileInfo, destination, false);
 

@@ -128,6 +128,7 @@ namespace ZipmodAssistant.Api.Services
             {
               _logger.LogError(ex, "Received bad manifest: {filename}", filename);
               fileInfo.CopyTo(Path.Join(dirs.Malformed, fileInfo.Name), true);
+              fileInfo.Delete();
               continue;
             }
           }

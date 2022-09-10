@@ -95,7 +95,7 @@ namespace ZipmodAssistant.Tarot.Utilities
         isReadingChunks = length > 0;
       }
       while (isReadingChunks);
-      var hasData = inputStream.Position != inputStream.Length - 1;
+      var hasData = inputStream.Position != inputStream.Length;
       _hasIEndDataCache.Add(filename, hasData);
       return hasData;
     }

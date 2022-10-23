@@ -21,8 +21,8 @@ namespace ZipmodAssistant.Api.Extensions
         return ZipmodType.Studio;
       if (Directory.Exists(zipmod.GetPath("abdata\\map\\list\\mapinfo")))
         return ZipmodType.MapGame;
-      if (Directory.Exists(zipmod.GetPath("abdata\\studio")) &&
-        Directory.GetFiles(zipmod.GetPath("abdata\\studio")).Any(f => new FileInfo(f).Name.StartsWith("Map_")))
+      if (Directory.Exists(zipmod.GetPath("abdata\\studio\\info\\kPlug")) &&
+        Directory.GetFiles(zipmod.GetPath("abdata\\studio\\info\\kPlug")).Any(f => new FileInfo(f).Name.StartsWith("Map_")))
         return ZipmodType.MapStudio;
       return ZipmodType.Unknown;
     }
